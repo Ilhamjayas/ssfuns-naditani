@@ -15,7 +15,7 @@ export default function SetorGabahInfoPage() {
           </p>
           <div className="flex justify-center gap-4">
             <Link href="/masuk">
-              <Button size="lg" className="bg-white text-primary-800 hover:bg-slate-100 font-bold px-8">
+              <Button size="lg" variant="ghost" className="bg-white text-primary-800 hover:bg-slate-100 font-bold px-8 shadow-sm">
                 Jadwalkan Setoran (Masuk)
               </Button>
             </Link>
