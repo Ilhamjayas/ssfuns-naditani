@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Calendar, Clock, CheckCircle2, ChevronRight, Info } from 'lucide-react';
+import { MapPin, Calendar, Clock, CheckCircle2, ChevronRight, Info, Truck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
 
