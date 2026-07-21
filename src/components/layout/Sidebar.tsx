@@ -98,11 +98,8 @@ export function Sidebar() {
 
                   {/* Active Indicator Background */}
                   {isActive && (
-                    <motion.div
-                      layoutId="sidebarActive"
+                    <div
                       className="absolute inset-0 bg-primary-50 rounded-xl border border-primary-100 z-0"
-                      initial={false}
-                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}
                   
@@ -116,16 +113,6 @@ export function Sidebar() {
           </nav>
         </div>
         
-        {/* Logout Button */}
-        <div className="p-4 border-t border-slate-100">
-          <button
-            onClick={handleLogout}
-            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors font-medium"
-          >
-            <LogOut className="h-5 w-5" />
-            Keluar
-          </button>
-        </div>
       </div>
     </div>
   );

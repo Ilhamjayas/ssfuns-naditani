@@ -85,13 +85,15 @@ export default function MasukPage() {
         
         {/* Header Section */}
         <div className="text-center space-y-4">
-          <div className="inline-flex items-center justify-center mb-4 relative h-16 w-64 mx-auto">
-            <Image src="/logo/logo-text-v2.png" alt="NADI-TANI Logo" fill className="object-contain" priority />
+          <div className="flex flex-col items-center justify-center mb-6">
+            <div className="relative h-20 w-20 mb-4 drop-shadow-[0_0_12px_rgba(40,167,69,0.3)]">
+              <Image src="/logo/logo-bulat-v2.png" alt="NADI-TANI Logo" fill className="object-contain" priority />
+            </div>
+            <h1 className="text-3xl font-bold tracking-tight text-hijau-tua sm:text-4xl">
+              Selamat Datang di NADI-TANI
+            </h1>
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-hijauTua sm:text-4xl mb-2">
-            Selamat Datang di NADI-TANI
-          </h1>
-          <p className="text-lg text-hijauTua/80 max-w-2xl mx-auto">
+          <p className="text-lg text-hijau-tua/80 max-w-2xl mx-auto">
             Pilih Peran untuk Masuk
           </p>
           {error && (

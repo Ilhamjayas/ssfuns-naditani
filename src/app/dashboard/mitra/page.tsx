@@ -10,11 +10,18 @@ import { formatRupiah } from '@/lib/utils/format';
 export default function MitraDashboardPage() {
   const [loading, setLoading] = useState(true);
 
+  const [orders, setOrders] = useState([
+    { id: 'ORD-0921', product: 'Beras Premium Ngawi', qty: '5 Ton', status: 'processing', total: 72500000 },
+    { id: 'ORD-0922', product: 'Briket Sekam Padi', qty: '1 Ton', status: 'shipped', total: 4500000 },
+    { id: 'ORD-0918', product: 'Bekatul Stabil', qty: '500 Kg', status: 'delivered', total: 2000000 },
+    { id: 'ORD-0915', product: 'Beras Medium', qty: '2 Ton', status: 'delivered', total: 24000000 }
+  ]);
+
   useEffect(() => {
     // Simulate loading mock data
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 600);
+    }, 50);
     return () => clearTimeout(timer);
   }, []);
 
@@ -36,6 +43,21 @@ export default function MitraDashboardPage() {
           <h1 className="text-2xl font-bold text-slate-800">Dashboard Mitra Industri</h1>
           <p className="text-slate-500">Kelola pesanan dan pembelian hasil pascapanen NADI-TANI</p>
         </div>
+        <button 
+          onClick={() => {
+            const newOrder = {
+              id: `ORD-09${23 + orders.length}`,
+              product: 'Tepung Beras',
+              qty: '2 Ton',
+              status: 'processing',
+              total: 18000000
+            };
+            setOrders([newOrder, ...orders]);
+          }}
+          className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+        >
+          + Buat Pesanan Baru
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -87,12 +109,7 @@ export default function MitraDashboardPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {[
-                      { id: 'ORD-0921', product: 'Beras Premium Ngawi', qty: '5 Ton', status: 'processing', total: 72500000 },
-                      { id: 'ORD-0922', product: 'Briket Sekam Padi', qty: '1 Ton', status: 'shipped', total: 4500000 },
-                      { id: 'ORD-0918', product: 'Bekatul Stabil', qty: '500 Kg', status: 'delivered', total: 2000000 },
-                      { id: 'ORD-0915', product: 'Beras Medium', qty: '2 Ton', status: 'delivered', total: 24000000 }
-                    ].map((order, idx) => (
+                    {orders.map((order, idx) => (
                       <tr key={idx} className="border-b border-slate-100 last:border-0 hover:bg-slate-50 transition-colors">
                         <td className="px-4 py-3 font-medium text-slate-900">{order.id}</td>
                         <td className="px-4 py-3">{order.product}</td>
@@ -105,7 +122,18 @@ export default function MitraDashboardPage() {
                             {order.status === 'delivered' ? 'Selesai' : order.status === 'shipped' ? 'Dikirim' : 'Diproses'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right font-medium">{formatRupiah(order.total)}</td>
+                        <td className="px-4 py-3 text-right font-medium">
+                          {order.status === 'shipped' ? (
+                            <button
+                              onClick={() => setOrders(orders.map(o => o.id === order.id ? { ...o, status: 'delivered' } : o))}
+                              className="text-xs bg-primary-50 text-primary-600 hover:bg-primary-100 px-3 py-1.5 rounded font-semibold transition-colors"
+                            >
+                              Terima Pesanan
+                            </button>
+                          ) : (
+                            formatRupiah(order.total)
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
