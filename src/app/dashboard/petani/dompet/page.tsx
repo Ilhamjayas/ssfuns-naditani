@@ -11,8 +11,11 @@ import { formatRupiah } from '@/lib/utils/format';
 import { WalletAccount, WalletTransaction } from '@/lib/types';
 import { Wallet, ArrowDownRight, ArrowUpRight, CheckCircle2 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { toast } from 'sonner';
 
 export default function DompetPage() {
+  const { user } = useAuth();
   const [wallet, setWallet] = useState<WalletAccount | null>(null);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,10 +27,11 @@ export default function DompetPage() {
 
   useEffect(() => {
     const fetchWalletData = async () => {
+      if (!user) return;
       setLoading(true);
       try {
-        const balance = await walletService.getWalletBalance('PTN-240017');
-        const history = await walletService.getWalletHistory('PTN-240017');
+        const balance = await walletService.getWalletBalance(user.id);
+        const history = await walletService.getWalletHistory(user.id);
         
         setWallet(balance);
         setTransactions(history);
@@ -50,18 +54,23 @@ export default function DompetPage() {
       const amount = parseInt(withdrawAmount, 10);
       await walletService.requestWithdrawal(wallet.id, amount, bankInfo);
       setWithdrawSuccess(true);
+      toast.success(`Berhasil menarik Rp ${formatRupiah(amount)}`);
+      
       // Wait a bit, then refresh the list (mock behavior will just append locally or reset)
       setTimeout(async () => {
         setWithdrawSuccess(false);
         setWithdrawAmount('');
         setBankInfo('');
-        const balance = await walletService.getWalletBalance('PTN-240017');
-        const history = await walletService.getWalletHistory('PTN-240017');
-        setWallet(balance);
-        setTransactions(history);
+        if (user) {
+          const balance = await walletService.getWalletBalance(user.id);
+          const history = await walletService.getWalletHistory(user.id);
+          setWallet(balance);
+          setTransactions(history);
+        }
       }, 2500);
     } catch (error) {
       console.error('Withdrawal failed', error);
+      toast.error('Penarikan gagal diproses');
     } finally {
       setIsWithdrawing(false);
     }
@@ -70,14 +79,14 @@ export default function DompetPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-nadi-tua">Dompet NADI-TANI</h1>
+        <h1 className="text-2xl font-bold text-primary-800">Dompet NADI-TANI</h1>
         <p className="text-muted-foreground mt-1 text-sm">
           Kelola saldo pendapatan dari hasil panen Anda.
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="md:col-span-1 bg-gradient-to-br from-nadi-tani to-nadi-tua text-white border-none shadow-md relative overflow-hidden">
+        <Card className="md:col-span-1 bg-gradient-to-br from-primary-600 to-primary-800 text-white border-none shadow-md relative overflow-hidden">
           <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-white/10 blur-2xl"></div>
           <CardHeader>
             <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
@@ -140,8 +149,13 @@ export default function DompetPage() {
                 <div className="flex justify-end">
                   <Button 
                     type="submit" 
-                    className="bg-nadi-tani hover:bg-nadi-tua text-white" 
+                    className="bg-primary-600 hover:bg-primary-700 text-white" 
                     disabled={isWithdrawing || !wallet || wallet.balance < 50000}
+                    onClick={() => {
+                      if (!wallet || wallet.balance < 50000) {
+                        toast.error("Saldo tidak mencukupi atau dompet belum siap");
+                      }
+                    }}
                   >
                     {isWithdrawing ? 'Memproses...' : 'Tarik Dana'}
                   </Button>

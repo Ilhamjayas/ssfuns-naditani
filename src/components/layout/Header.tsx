@@ -41,8 +41,8 @@ export function Header() {
           
           {/* Notifications */}
           <div className="relative">
-            <Button variant="ghost" size="icon" onClick={() => { setShowNotif(!showNotif); setShowProfile(false); }} className="hover:bg-slate-100 rounded-full relative">
-              <Bell className="h-5 w-5 text-slate-600" />
+            <Button variant="ghost" size="icon" onClick={() => { setShowNotif(!showNotif); setShowProfile(false); }} className="hover:bg-slate-100 rounded-full relative cursor-pointer">
+              <Bell className="h-5 w-5 text-slate-600 cursor-pointer" />
               <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-red-500 border border-white"></span>
               <span className="sr-only">Notifications</span>
             </Button>
@@ -83,7 +83,7 @@ export function Header() {
           <div className="relative">
             <button 
               onClick={() => { setShowProfile(!showProfile); setShowNotif(false); }} 
-              className="flex items-center gap-2 hover:bg-slate-50 p-1.5 rounded-full transition-colors focus:outline-none"
+              className="flex items-center gap-2 hover:bg-slate-50 p-1.5 rounded-full transition-colors focus:outline-none cursor-pointer"
             >
               <div className="bg-primary-100 text-primary-700 h-8 w-8 rounded-full flex items-center justify-center">
                 <User className="h-4 w-4" />
