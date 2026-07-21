@@ -81,6 +81,15 @@ export default function PenerimaanPage() {
     }).format(amount);
   };
 
+  const handleVerifikasi = (id: string) => {
+    setTransactions(transactions.map(t => t.id === id ? { ...t, status: 'selesai' as const } : t));
+  };
+
+  const handleTolak = (id: string) => {
+    // For demo, we just remove it or change status. Let's remove it from view.
+    setTransactions(transactions.filter(t => t.id !== id));
+  };
+
   return (
     <div className="space-y-6">
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
@@ -158,10 +167,10 @@ export default function PenerimaanPage() {
                       </div>
                       
                       <div className="flex gap-2 w-full md:w-auto">
-                        <Button variant="outline" className="flex-1 md:flex-none border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700">
+                        <Button onClick={() => handleTolak(trx.id)} variant="outline" className="flex-1 md:flex-none border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700">
                           Tolak
                         </Button>
-                        <Button className="flex-1 md:flex-none bg-hijau-pertanian hover:bg-hijau-tua">
+                        <Button onClick={() => handleVerifikasi(trx.id)} className="flex-1 md:flex-none bg-hijau-pertanian hover:bg-hijau-tua">
                           Verifikasi
                         </Button>
                       </div>

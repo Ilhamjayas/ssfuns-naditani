@@ -44,8 +44,36 @@ export default function PengeringanPage() {
       case 'completed': return 'Selesai';
       case 'in_progress': return 'Sedang Berjalan';
       case 'pending': return 'Menunggu';
+      case 'paused': return 'Dijeda';
       default: return status;
     }
+  };
+
+  const handleStartNewBatch = () => {
+    const newProcess: DryingProcess = {
+      id: `DRY-${new Date().toISOString().split('T')[0]}-00${processes.length + 1}`,
+      batchId: `BATCH-${new Date().toISOString().split('T')[0]}-00${processes.length + 1}`,
+      machineId: `MAC-DRY-0${Math.floor(Math.random() * 5) + 1}`,
+      startTime: new Date().toISOString(),
+      initialMoisture: Math.floor(Math.random() * 10) + 18,
+      targetMoisture: 14,
+      currentMoisture: Math.floor(Math.random() * 10) + 18,
+      temperature: 45,
+      status: 'running'
+    };
+    setProcesses([newProcess, ...processes]);
+  };
+
+  const handlePauseProcess = (id: string) => {
+    setProcesses(processes.map(p => p.id === id ? { ...p, status: 'paused' as const } : p));
+  };
+
+  const handleResumeProcess = (id: string) => {
+    setProcesses(processes.map(p => p.id === id ? { ...p, status: 'running' as const } : p));
+  };
+
+  const handleCompleteProcess = (id: string) => {
+    setProcesses(processes.map(p => p.id === id ? { ...p, status: 'completed' as const, endTime: new Date().toISOString() } : p));
   };
 
   return (
@@ -55,7 +83,7 @@ export default function PengeringanPage() {
           <h1 className="text-2xl font-bold text-hijau-tua">Proses Pengeringan</h1>
           <p className="text-gray-500 mt-1">Pemantauan dan kontrol mesin pengering gabah (Bed Dryer).</p>
         </div>
-        <Button className="bg-hijau-pertanian hover:bg-hijau-tua">
+        <Button onClick={handleStartNewBatch} className="bg-hijau-pertanian hover:bg-hijau-tua">
           Mulai Batch Baru
         </Button>
       </div>
@@ -135,17 +163,17 @@ export default function PengeringanPage() {
 
                     {process.status === 'running' && (
                       <div className="flex gap-2 pt-2">
-                        <Button variant="outline" className="flex-1 border-red-200 text-red-600 hover:bg-red-50" size="sm">
+                        <Button onClick={() => handlePauseProcess(process.id)} variant="outline" className="flex-1 border-red-200 text-red-600 hover:bg-red-50" size="sm">
                           <Pause className="h-4 w-4 mr-2" />
                           Jeda
                         </Button>
-                        <Button className="flex-1 bg-hijau-pertanian hover:bg-hijau-tua" size="sm">
+                        <Button onClick={() => handleCompleteProcess(process.id)} className="flex-1 bg-hijau-pertanian hover:bg-hijau-tua" size="sm">
                           Selesai
                         </Button>
                       </div>
                     )}
                     {process.status === 'paused' && (
-                      <Button className="w-full bg-hijau-pertanian hover:bg-hijau-tua" size="sm">
+                      <Button onClick={() => handleResumeProcess(process.id)} className="w-full bg-hijau-pertanian hover:bg-hijau-tua" size="sm">
                         <Play className="h-4 w-4 mr-2" />
                         Mulai Proses
                       </Button>

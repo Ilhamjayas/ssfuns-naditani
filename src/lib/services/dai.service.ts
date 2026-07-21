@@ -8,19 +8,19 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const daiService = {
   async getDaiInfo(id: string): Promise<DaiLocation> {
-    await delay(300);
+    await delay(50);
     const dai = mockDaiLocations.find(d => d.id === id);
     if (!dai) throw new Error('DAI tidak ditemukan');
     return dai;
   },
   
   async getBatches(daiId: string): Promise<ProductionBatch[]> {
-    await delay(400);
+    await delay(50);
     return mockBatches.filter(b => b.daiId === daiId);
   },
   
   async getDryingProcesses(batchId?: string): Promise<DryingProcess[]> {
-    await delay(300);
+    await delay(50);
     if (batchId) {
       return mockDryingProcesses.filter(d => d.batchId === batchId);
     }
@@ -28,7 +28,7 @@ export const daiService = {
   },
   
   async getMillingProcesses(batchId?: string): Promise<MillingProcess[]> {
-    await delay(300);
+    await delay(50);
     if (batchId) {
       return mockMillingProcesses.filter(m => m.batchId === batchId);
     }
@@ -36,12 +36,12 @@ export const daiService = {
   },
   
   async getWarehouseStock(daiId: string): Promise<WarehouseStock[]> {
-    await delay(500);
+    await delay(50);
     return mockWarehouseStock.filter(w => w.daiId === daiId);
   },
   
   async getMachines(daiId: string) {
-    await delay(400);
+    await delay(50);
     return mockMachines.filter(m => m.daiId === daiId);
   }
 };
