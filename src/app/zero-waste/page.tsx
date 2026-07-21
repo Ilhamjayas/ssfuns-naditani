@@ -34,7 +34,7 @@ export default function ZeroWastePage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-slate-50 pt-20 overflow-hidden relative">
-      <div className="absolute top-0 right-0 w-full h-96 bg-gradient-to-bl from-green-900 via-primary-900 to-primary-800 z-0 opacity-10"></div>
+      <div className="absolute top-0 right-0 w-full h-[550px] bg-gradient-to-bl from-green-900 via-primary-900 to-primary-800 z-0 opacity-10"></div>
       
       <div className="container mx-auto px-4 lg:px-8 py-20 relative z-10">
         <motion.div 

@@ -65,6 +65,9 @@ export function RootHeader() {
                   priority
                 />
               </motion.div>
+              <span className={`font-bold text-xl tracking-tight hidden sm:block ${scrolled ? 'text-slate-800' : 'text-slate-800'}`}>
+                NADI-TANI
+              </span>
           </Link>
 
           {/* Desktop Navigation */}
