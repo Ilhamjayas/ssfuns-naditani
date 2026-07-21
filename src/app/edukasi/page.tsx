@@ -81,7 +81,7 @@ export default function EdukasiPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {modulList.map((item, idx) => (
               <Card key={idx} className="hover:shadow-card-hover transition-shadow flex flex-col">
-                <CardContent className="p-6 flex flex-col flex-1">
+                <CardContent className="p-6 pt-6 flex flex-col flex-1">
                   <div className={`w-12 h-12 rounded-lg ${item.bgColor} ${item.color} flex items-center justify-center mb-4`}>
                     {item.icon}
                   </div>

@@ -15,12 +15,21 @@ import {
   CheckCircle2,
   ThermometerSun,
   BarChart3,
-  Map
+  Map,
+  LogOut,
+  TrendingUp
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await logout();
+    router.push('/masuk');
+  };
 
   // Dynamic navigation based on role
   const getNavItems = () => {
@@ -106,10 +115,18 @@ export function Sidebar() {
             })}
           </nav>
         </div>
+        
+        {/* Logout Button */}
+        <div className="p-4 border-t border-slate-100">
+          <button
+            onClick={handleLogout}
+            className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-red-600 hover:bg-red-50 hover:text-red-700 transition-colors font-medium"
+          >
+            <LogOut className="h-5 w-5" />
+            Keluar
+          </button>
+        </div>
       </div>
     </div>
   );
 }
-
-// Ensure TrendingUp is imported if used
-import { TrendingUp } from 'lucide-react';

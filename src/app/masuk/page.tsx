@@ -88,7 +88,7 @@ export default function MasukPage() {
           <div className="inline-flex items-center justify-center mb-4 relative h-16 w-64 mx-auto">
             <Image src="/logo/logo-text-v2.png" alt="NADI-TANI Logo" fill className="object-contain" priority />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight text-hijauTua sm:text-4xl hidden">
+          <h1 className="text-3xl font-bold tracking-tight text-hijauTua sm:text-4xl mb-2">
             Selamat Datang di NADI-TANI
           </h1>
           <p className="text-lg text-hijauTua/80 max-w-2xl mx-auto">

@@ -18,8 +18,8 @@ export function RootFooter() {
       <div className="container mx-auto px-4 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
-            <Link href="/" className="flex items-center gap-3 mb-4">
-              <div className="relative h-10 w-40">
+            <Link href="/" className="flex items-center gap-3 mb-6">
+              <div className="relative h-16 w-60 drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
                 <Image src="/logo/logo-text-v2.png" alt="NADI-TANI Logo" fill className="object-contain object-left" />
               </div>
             </Link>

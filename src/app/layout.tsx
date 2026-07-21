@@ -60,7 +60,7 @@ export default function RootLayout({
         <link rel="icon" type="image/png" sizes="32x32" href="/logo/logo-bulat-v2.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/logo/logo-bulat-v2.png" />
       </head>
-      <body className="min-h-full flex flex-col antialiased" style={{ fontFamily: "var(--font-sans)" }}>
+      <body className="min-h-full flex flex-col antialiased bg-slate-50" style={{ fontFamily: "var(--font-sans)" }}>
         <NextTopLoader
           color="#2E7D32"
           initialPosition={0.08}

@@ -1,4 +1,4 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 /* ============================================
    NADI-TANI Design System
@@ -666,3 +666,11 @@ body {
 .connection-slow {
   color: var(--color-warning);
 }
+
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+

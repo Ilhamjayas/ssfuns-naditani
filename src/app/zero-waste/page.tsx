@@ -46,7 +46,10 @@ export default function ZeroWastePage() {
           <div className="inline-block px-4 py-2 bg-green-100 text-green-800 rounded-full font-bold text-sm mb-6 uppercase tracking-wider">
             Sirkularitas Ekonomi
           </div>
-          <h1 className="text-display text-slate-800 font-extrabold mb-6 tracking-tight">Mengubah Hasil Samping Menjadi <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-yellow-500">Nilai Ekonomi</span></h1>
+          <h1 className="text-4xl md:text-6xl lg:text-7xl text-slate-800 font-extrabold mb-6 tracking-tight leading-tight">
+            Mengubah Hasil Samping <br className="hidden md:block" />
+            Menjadi <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-yellow-500">Nilai Ekonomi</span>
+          </h1>
           <p className="text-xl text-slate-600 font-medium leading-relaxed max-w-3xl mx-auto">
             Sekam, bekatul, jerami, dan limbah cair tidak hanya dipandang sebagai sisa produksi, tetapi sebagai sumber daya yang masih dapat diolah menjadi produk bernilai guna tinggi.
           </p>
@@ -137,7 +140,7 @@ export default function ZeroWastePage() {
                 <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
                   <Calculator className="w-8 h-8 text-white" />
                 </div>
-                <CardTitle className="text-3xl font-extrabold">Kalkulator Potensi Hasil Samping</CardTitle>
+                <CardTitle className="text-3xl font-extrabold text-white">Kalkulator Potensi Hasil Samping</CardTitle>
               </div>
               <p className="text-primary-100 mt-2 text-lg">
                 Simulasikan nilai tambah yang dapat dihasilkan dari pengolahan hasil samping gabah.

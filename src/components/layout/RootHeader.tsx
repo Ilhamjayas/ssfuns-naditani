@@ -55,9 +55,15 @@ export function RootHeader() {
               <motion.div 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="relative h-16 w-56 sm:h-20 sm:w-64"
+                className="relative h-10 w-10 sm:h-12 sm:w-12"
               >
-                <Image src="/logo/logo-text-v2.png" alt="NADI-TANI Logo" fill className="object-contain object-left" />
+                <Image 
+                  src="/logo/logo-bulat-v2.png" 
+                  alt="NADI-TANI" 
+                  fill 
+                  className={`object-contain transition-all duration-300 ${!scrolled ? 'drop-shadow-[0_0_12px_rgba(255,255,255,0.8)]' : ''}`}
+                  priority
+                />
               </motion.div>
           </Link>
 

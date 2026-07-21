@@ -10,12 +10,12 @@ export const analyticsService = {
   
   async getNTPData() {
     await delay(400);
-    return mockNTPData.filter(d => !d.isProjection);
+    return mockNTPData.filter(d => !d.isProjection && d.category === 'Tanaman Pangan');
   },
 
   async getNTPProjection() {
     await delay(400);
-    return mockNTPData.filter(d => d.isProjection);
+    return mockNTPData.filter(d => d.isProjection && d.category === 'Tanaman Pangan');
   },
   
   async getGTWRData() {

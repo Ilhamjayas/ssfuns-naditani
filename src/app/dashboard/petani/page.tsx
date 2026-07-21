@@ -41,7 +41,7 @@ export default function PetaniDashboardPage() {
     return (
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-nadi-tua">Dashboard Petani</h1>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-32 w-full rounded-xl" />
           ))}
@@ -61,7 +61,7 @@ export default function PetaniDashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Saldo Tersedia"
           value={walletData ? formatRupiah(walletData.balance) : 'Rp 0'}

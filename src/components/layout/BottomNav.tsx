@@ -16,12 +16,28 @@ import {
   BarChart3,
   Map,
   TrendingUp,
-  User
+  User,
+  LogOut
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+
+type NavItem = {
+  name: string;
+  href: string;
+  icon: React.ElementType;
+  isAction?: boolean;
+};
 
 export function BottomNav() {
   const pathname = usePathname();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    await logout();
+    router.push('/masuk');
+  };
 
   // Dynamic mobile navigation based on role
   const getNavItems = () => {
@@ -61,24 +77,29 @@ export function BottomNav() {
     return null;
   }
 
-  // Add profil for everyone at the end
-  const finalNavItems = [...mobileNavItems, { name: 'Profil', href: '/dashboard/profil', icon: User }];
+  const finalNavItems: NavItem[] = [
+    ...mobileNavItems, 
+    { name: 'Profil', href: '/dashboard/profil', icon: User },
+    { name: 'Keluar', href: '#', icon: LogOut, isAction: true }
+  ];
 
   return (
-    <div className="md:hidden fixed bottom-0 left-0 z-50 w-full h-16 bg-white/90 backdrop-blur-xl border-t border-slate-200/50 pb-safe shadow-[0_-4px_24px_rgba(0,0,0,0.05)]">
+    <div className="md:hidden fixed bottom-0 left-0 z-50 w-full h-16 bg-white/95 backdrop-blur-xl border-t border-slate-200/50 pb-safe shadow-[0_-4px_24px_rgba(0,0,0,0.05)]">
       <div className={`grid h-full max-w-lg mx-auto font-medium ${
         finalNavItems.length === 4 ? 'grid-cols-4' : 
         finalNavItems.length === 5 ? 'grid-cols-5' : 
+        finalNavItems.length === 6 ? 'grid-cols-6' : 
         'grid-cols-3'
       }`}>
         {finalNavItems.map((item, index) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href && !item.isAction;
 
           return (
             <Link
               key={index}
               href={item.href}
+              onClick={item.isAction ? handleLogout : undefined}
               className="relative inline-flex flex-col items-center justify-center group outline-none"
             >
               <motion.div
@@ -92,8 +113,8 @@ export function BottomNav() {
                   <Icon className={cn("w-5 h-5", isActive ? "fill-primary-100" : "")} />
                 </div>
                 <span className={cn(
-                  "text-[10px] sm:text-xs font-semibold transition-colors",
-                  isActive ? "text-primary-700" : "text-slate-500 group-hover:text-primary-600"
+                  "text-[10px] sm:text-xs font-semibold transition-colors mt-0.5",
+                  isActive ? "text-primary-700" : (item.isAction ? "text-red-500 group-hover:text-red-600" : "text-slate-500 group-hover:text-primary-600")
                 )}>
                   {item.name}
                 </span>
