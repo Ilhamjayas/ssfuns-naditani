@@ -8,6 +8,7 @@ import { DepositTransaction } from '@/lib/types';
 import { CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 export default function PenerimaanPage() {
   const [transactions, setTransactions] = useState<DepositTransaction[]>([]);
@@ -83,11 +84,12 @@ export default function PenerimaanPage() {
 
   const handleVerifikasi = (id: string) => {
     setTransactions(transactions.map(t => t.id === id ? { ...t, status: 'selesai' as const } : t));
+    toast.success("Verifikasi berhasil disimpan");
   };
 
   const handleTolak = (id: string) => {
-    // For demo, we just remove it or change status. Let's remove it from view.
     setTransactions(transactions.filter(t => t.id !== id));
+    toast.error("Transaksi ditolak dan dihapus dari daftar");
   };
 
   return (

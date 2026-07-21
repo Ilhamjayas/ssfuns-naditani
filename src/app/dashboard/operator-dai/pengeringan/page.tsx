@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import { daiService } from '@/lib/services/dai.service';
 import { DryingProcess } from '@/lib/types';
 import { Sun, Thermometer, Clock, CheckCircle2, Play, Pause } from 'lucide-react';
@@ -62,18 +63,22 @@ export default function PengeringanPage() {
       status: 'running'
     };
     setProcesses([newProcess, ...processes]);
+    toast.success("Batch pengeringan baru berhasil dimulai");
   };
 
   const handlePauseProcess = (id: string) => {
     setProcesses(processes.map(p => p.id === id ? { ...p, status: 'paused' as const } : p));
+    toast.warning("Proses pengeringan dijeda sementara");
   };
 
   const handleResumeProcess = (id: string) => {
     setProcesses(processes.map(p => p.id === id ? { ...p, status: 'running' as const } : p));
+    toast.success("Proses pengeringan dilanjutkan");
   };
 
   const handleCompleteProcess = (id: string) => {
     setProcesses(processes.map(p => p.id === id ? { ...p, status: 'completed' as const, endTime: new Date().toISOString() } : p));
+    toast.success("Proses pengeringan telah selesai");
   };
 
   return (

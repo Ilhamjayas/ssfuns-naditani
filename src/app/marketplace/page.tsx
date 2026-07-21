@@ -11,6 +11,7 @@ import { marketplaceService } from '@/lib/services/marketplace.service';
 import { formatRupiah, formatWeight } from '@/lib/utils/format';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 export default function MarketplacePage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -80,7 +81,7 @@ export default function MarketplacePage() {
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
-              <Button variant="outline" className="h-14 px-8 rounded-2xl border-white/20 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border-2 font-bold text-lg shadow-lg">
+              <Button onClick={() => toast.info("Fitur filter lanjutan akan segera hadir!")} variant="outline" className="h-14 px-8 rounded-2xl border-white/20 bg-white/10 hover:bg-white/20 backdrop-blur-md text-white border-2 font-bold text-lg shadow-lg">
                 <Filter className="w-5 h-5 mr-3" /> Filter
               </Button>
             </div>
@@ -164,7 +165,10 @@ export default function MarketplacePage() {
                       </div>
                     </div>
                     
-                    <Button className="w-full h-12 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold shadow-md shadow-primary-600/20 transition-all hover:shadow-lg hover:shadow-primary-600/30">
+                    <Button 
+                      onClick={() => toast.success(`Produk ${product.name} ditambahkan ke keranjang!`)}
+                      className="w-full h-12 rounded-xl bg-primary-600 hover:bg-primary-700 text-white font-bold shadow-md shadow-primary-600/20 transition-all hover:shadow-lg hover:shadow-primary-600/30"
+                    >
                       <ShoppingCart className="w-5 h-5 mr-2" /> Pesan Sekarang
                     </Button>
                   </CardContent>

@@ -5,6 +5,7 @@ import { RootHeader } from "@/components/layout/RootHeader";
 import { RootFooter } from "@/components/layout/RootFooter";
 import { PageTransition } from "@/components/layout/PageTransition";
 import NextTopLoader from 'nextjs-toploader';
+import { Toaster } from 'sonner';
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -81,6 +82,7 @@ export default function RootLayout({
           </main>
           <RootFooter />
         </AuthProvider>
+        <Toaster position="top-center" richColors />
       </body>
     </html>
   );
