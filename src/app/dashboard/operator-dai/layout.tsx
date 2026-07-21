@@ -7,7 +7,7 @@ export default function OperatorDAILayout({
   children: React.ReactNode;
 }) {
   return (
-    <ProtectedRoute allowedRoles={['operator_dai', 'pengelola_dai']}>
+    <ProtectedRoute allowedRoles={['operator_dai', 'pengelola_dai', 'operator_atm']}>
       <DashboardLayout>
         {children}
       </DashboardLayout>
