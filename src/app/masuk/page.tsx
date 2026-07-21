@@ -6,7 +6,7 @@ import { DEMO_CREDENTIALS, COLOR_PALETTE } from '@/lib/utils/constants';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Shield, Tractor, Briefcase, Building, ShoppingBag, Database, Loader2, ArrowRight } from 'lucide-react';
+import { Shield, Tractor, Briefcase, Building, ShoppingBag, Database, Loader2, ArrowRight, ArrowLeft } from 'lucide-react';
 
 const roleIcons: Record<string, React.ReactNode> = {
   petani: <Tractor className="h-6 w-6" />,
@@ -80,8 +80,14 @@ export default function MasukPage() {
   };
 
   return (
-    <div className="min-h-screen bg-krem flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-4xl space-y-8">
+    <div className="min-h-screen bg-krem flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8 relative">
+      <div className="absolute top-4 left-4 sm:top-8 sm:left-8">
+        <Link href="/" className="inline-flex items-center gap-2 text-hijau-tua hover:text-hijau-pertanian transition-colors font-medium">
+          <ArrowLeft className="h-4 w-4" />
+          <span>Kembali ke Beranda</span>
+        </Link>
+      </div>
+      <div className="w-full max-w-4xl space-y-8 mt-12 sm:mt-0">
         
         {/* Header Section */}
         <div className="text-center space-y-4">
