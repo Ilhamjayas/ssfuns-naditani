@@ -6,6 +6,7 @@ import { StatCard } from '@/components/ui/StatCard';
 import { ShoppingBag, Truck, PackageCheck, CircleDollarSign } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatRupiah } from '@/lib/utils/format';
+import { toast } from 'sonner';
 
 export default function MitraDashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -53,6 +54,7 @@ export default function MitraDashboardPage() {
               total: 18000000
             };
             setOrders([newOrder, ...orders]);
+            toast.success("Pesanan baru berhasil dibuat (Demo)");
           }}
           className="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
         >
@@ -125,7 +127,10 @@ export default function MitraDashboardPage() {
                         <td className="px-4 py-3 text-right font-medium">
                           {order.status === 'shipped' ? (
                             <button
-                              onClick={() => setOrders(orders.map(o => o.id === order.id ? { ...o, status: 'delivered' } : o))}
+                              onClick={() => {
+                                setOrders(orders.map(o => o.id === order.id ? { ...o, status: 'delivered' } : o));
+                                toast.success(`Pesanan ${order.id} berhasil diterima`);
+                              }}
                               className="text-xs bg-primary-50 text-primary-600 hover:bg-primary-100 px-3 py-1.5 rounded font-semibold transition-colors"
                             >
                               Terima Pesanan

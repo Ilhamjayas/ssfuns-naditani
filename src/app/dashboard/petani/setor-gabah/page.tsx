@@ -6,7 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CheckCircle2, Truck, MapPin } from 'lucide-react';
+import { MapPin, Calendar, Clock, CheckCircle2, ChevronRight, Info } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { toast } from 'sonner';
 
 export default function SetorGabahPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -32,11 +34,13 @@ export default function SetorGabahPage() {
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSuccess(true);
+      toast.success("Jadwal setor gabah berhasil disimpan");
     }, 1500);
   };
 
   const resetForm = () => {
     setIsSuccess(false);
+    toast.info("Membuat formulir jadwal baru");
     setFormData({
       berat: '',
       tanggal: '',

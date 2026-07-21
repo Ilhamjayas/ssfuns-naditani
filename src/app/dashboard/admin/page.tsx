@@ -7,6 +7,7 @@ import { Activity, Users, Database, ShieldCheck, ArrowRight } from 'lucide-react
 import { analyticsService } from '@/lib/services/analytics.service';
 import { Skeleton } from '@/components/ui/skeleton';
 import { NationalStats } from '@/lib/types';
+import { toast } from 'sonner';
 
 export default function AdminDashboardPage() {
   const [loading, setLoading] = useState(true);
@@ -120,7 +121,7 @@ export default function AdminDashboardPage() {
                 <span className="px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium">68% Kapasitas</span>
               </div>
             </div>
-            <button className="w-full mt-6 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 flex items-center justify-center">
+            <button onClick={() => toast.info('Memuat log sistem lengkap...')} className="w-full mt-6 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-slate-50 flex items-center justify-center">
               Lihat Detail Log <ArrowRight className="w-4 h-4 ml-2" />
             </button>
           </CardContent>
