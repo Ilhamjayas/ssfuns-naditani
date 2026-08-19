@@ -29,7 +29,7 @@ export function Sidebar() {
     .toUpperCase() || 'NT';
 
   return (
-    <aside className="sticky top-16 hidden h-[calc(100dvh-4rem)] w-64 shrink-0 border-r border-slate-200/70 bg-white lg:block xl:w-72">
+    <aside className="sticky top-0 hidden h-[calc(100dvh-4rem)] w-64 shrink-0 border-r border-slate-200/70 bg-white lg:block xl:w-72">
       <div className="flex h-full max-h-screen flex-col gap-2 pt-7">
         <div className="mb-3 px-6">
           <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Menu Utama</h2>
