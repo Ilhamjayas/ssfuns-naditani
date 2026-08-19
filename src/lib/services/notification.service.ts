@@ -1,38 +1,38 @@
 import { Notification } from '../types';
-import { mockNotifications } from '../data/notifications';
+import { getDemoState, updateDemoState } from '../demo/demo-store';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export const notificationService = {
   async getNotifications(userId?: string): Promise<Notification[]> {
     await delay(300);
-    if (userId) {
-      return mockNotifications.filter(n => n.userId === userId)
-        .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    }
-    return [...mockNotifications].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    if (!userId) return [];
+    const acceptedIds = userId === 'user-petani-1' ? ['user-petani-1', 'user-1'] : [userId];
+    return getDemoState().notifications.filter(n => acceptedIds.includes(n.userId))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   },
-  
+
   async getUnreadCount(userId: string): Promise<number> {
     await delay(200);
-    return mockNotifications.filter(n => n.userId === userId && !n.isRead).length;
+    const acceptedIds = userId === 'user-petani-1' ? ['user-petani-1', 'user-1'] : [userId];
+    return getDemoState().notifications.filter(n => acceptedIds.includes(n.userId) && !n.isRead).length;
   },
-  
+
   async markAsRead(id: string): Promise<void> {
     await delay(300);
-    // In a real app, we would update the backend
-    const notif = mockNotifications.find(n => n.id === id);
-    if (notif) {
-      notif.isRead = true;
-    }
+    updateDemoState(state => {
+      const notif = state.notifications.find(n => n.id === id);
+      if (notif) notif.isRead = true;
+    });
   },
-  
+
   async markAllAsRead(userId: string): Promise<void> {
     await delay(400);
-    mockNotifications.forEach(n => {
-      if (n.userId === userId) {
-        n.isRead = true;
-      }
+    const acceptedIds = userId === 'user-petani-1' ? ['user-petani-1', 'user-1'] : [userId];
+    updateDemoState(state => {
+      state.notifications.forEach(n => {
+        if (acceptedIds.includes(n.userId)) n.isRead = true;
+      });
     });
   }
 };

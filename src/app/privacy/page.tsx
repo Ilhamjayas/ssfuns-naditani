@@ -1,14 +1,8 @@
 import React from 'react';
-import { RootHeader } from '@/components/layout/RootHeader';
-import { RootFooter } from '@/components/layout/RootFooter';
-import { PageTransition } from '@/components/layout/PageTransition';
 
 export default function PrivacyPage() {
   return (
-    <>
-      <RootHeader />
-      <main className="flex-1 flex flex-col pt-24 pb-16">
-        <PageTransition>
+      <div className="flex flex-1 flex-col pb-16 pt-24">
           <div className="container max-w-4xl mx-auto px-4">
             <h1 className="text-4xl font-extrabold text-slate-900 mb-8">Kebijakan Privasi</h1>
             <div className="prose prose-slate max-w-none">
@@ -25,9 +19,6 @@ export default function PrivacyPage() {
               <p className="text-slate-600 mb-4">Kami menerapkan standar keamanan terkini untuk memastikan informasi profil, transaksi, dan aset finansial Anda tetap aman dan terenkripsi.</p>
             </div>
           </div>
-        </PageTransition>
-      </main>
-      <RootFooter />
-    </>
+      </div>
   );
 }

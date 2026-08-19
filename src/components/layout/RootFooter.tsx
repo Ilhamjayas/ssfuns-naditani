@@ -19,8 +19,8 @@ export function RootFooter() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
             <Link href="/" className="flex items-center gap-3 mb-6">
-              <div className="relative h-16 w-60 drop-shadow-[0_0_12px_rgba(255,255,255,0.4)]">
-                <Image src="/logo/logo-text-v2.png" alt="NADI-TANI Logo" fill className="object-contain object-left" />
+              <div className="relative h-14 w-48 drop-shadow-[0_0_12px_rgba(255,255,255,0.4)] sm:h-16 sm:w-60">
+                <Image src="/logo/logo-text-v2.png" alt="NADI-TANI Logo" fill sizes="(max-width: 640px) 192px, 240px" className="object-contain object-left" />
               </div>
             </Link>
             <p className="text-sm max-w-sm mb-6 text-primary-200">
@@ -30,7 +30,7 @@ export function RootFooter() {
               &copy; {new Date().getFullYear()} NADI-TANI. All rights reserved.
             </p>
           </div>
-          
+
           <div>
             <h4 className="text-white font-bold mb-4">Ekosistem</h4>
             <ul className="space-y-2 text-sm">
@@ -40,7 +40,7 @@ export function RootFooter() {
               <li><Link href="/zero-waste" className="hover:text-white transition-colors">Zero Waste</Link></li>
             </ul>
           </div>
-          
+
           <div>
             <h4 className="text-white font-bold mb-4">Informasi</h4>
             <ul className="space-y-2 text-sm">

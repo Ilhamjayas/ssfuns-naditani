@@ -15,12 +15,12 @@ interface StatCardProps {
   index?: number;
 }
 
-export function StatCard({ 
-  title, 
-  value, 
-  icon: Icon, 
-  trend, 
-  description, 
+export function StatCard({
+  title,
+  value,
+  icon: Icon,
+  trend,
+  description,
   color = "text-primary",
   className,
   index = 0
@@ -42,16 +42,16 @@ export function StatCard({
           <Icon className="w-32 h-32" />
         </div>
 
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative z-10">
+        <CardHeader className="relative z-10 flex flex-row items-center justify-between space-y-0 p-4 pb-2 sm:p-6 sm:pb-2">
           <CardTitle className="text-sm font-medium text-slate-600">{title}</CardTitle>
           <div className={cn("p-2 rounded-xl bg-muted/50 transition-colors group-hover:bg-opacity-80", color)}>
             <Icon className="h-5 w-5" />
           </div>
         </CardHeader>
-        <CardContent className="relative z-10">
-          <div className="text-3xl font-bold tracking-tight text-slate-900">{value}</div>
+        <CardContent className="relative z-10 p-4 pt-0 sm:p-6 sm:pt-0">
+          <div className="break-words text-xl font-bold tracking-tight text-slate-900 2xl:text-2xl">{value}</div>
           {(trend || description) && (
-            <p className="text-xs text-muted-foreground mt-2 flex items-center">
+            <p className="mt-2 flex flex-wrap items-center gap-y-1 text-xs text-muted-foreground">
               {trend && <span className={cn(
                 "font-medium mr-2 px-2 py-0.5 rounded-full",
                 trend.startsWith('+') ? "text-green-700 bg-green-100" : trend.startsWith('-') ? "text-red-700 bg-red-100" : "text-slate-700 bg-slate-100"

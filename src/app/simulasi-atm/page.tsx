@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CreditCard, CheckCircle2, Scale, Droplets, Microscope, Calculator, Receipt, Loader2, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { transactionService } from '@/lib/services/transaction.service';
 
 type Step = 'SCAN' | 'VERIFIKASI' | 'TIMBANG' | 'KADAR_AIR' | 'KUALITAS' | 'HITUNG' | 'SELESAI';
 
@@ -19,11 +20,20 @@ const steps: { id: Step; label: string; icon: React.ElementType }[] = [
   { id: 'SELESAI', label: 'Selesai', icon: Receipt },
 ];
 
+const FARMERS = [
+  { name: 'Budi Santoso', id: 'PTN-240017', beratKotor: 1250, kadarAir: 22, kualitas: 'Grade B (Sedang)' },
+  { name: 'Siti Aminah', id: 'PTN-2024-082', beratKotor: 850, kadarAir: 14, kualitas: 'Grade A (Super)' },
+  { name: 'Ahmad Dahlan', id: 'PTN-2024-115', beratKotor: 2100, kadarAir: 28, kualitas: 'Grade C (Rendah)' },
+  { name: 'Joko Widodo', id: 'PTN-2024-045', beratKotor: 1550, kadarAir: 18, kualitas: 'Grade B (Sedang)' },
+  { name: 'Ratna Sari', id: 'PTN-2024-099', beratKotor: 920, kadarAir: 15, kualitas: 'Grade A (Super)' },
+];
+
 export default function ATMSimulationPage() {
   const [currentStep, setCurrentStep] = useState<Step>('SCAN');
   const [isProcessing, setIsProcessing] = useState(false);
-  
+
   // Simulation Data
+  const [selectedFarmerIndex, setSelectedFarmerIndex] = useState<number>(0);
   const [farmerData, setFarmerData] = useState<{name: string, id: string} | null>(null);
   const [beratKotor, setBeratKotor] = useState<number>(0);
   const [kadarAir, setKadarAir] = useState<number>(0);
@@ -32,6 +42,7 @@ export default function ATMSimulationPage() {
   const [beratBersih, setBeratBersih] = useState<number>(0);
   const [hargaPerKg, setHargaPerKg] = useState<number>(0);
   const [totalHarga, setTotalHarga] = useState<number>(0);
+  const [receiptId, setReceiptId] = useState<string>('');
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -53,8 +64,10 @@ export default function ATMSimulationPage() {
   };
 
   const handleScanCard = () => {
+    const randIndex = Math.floor(Math.random() * FARMERS.length);
+    setSelectedFarmerIndex(randIndex);
     simulateProcess('VERIFIKASI', 1500, () => {
-      setFarmerData({ name: 'Budi Santoso', id: 'PTN-2024-001' });
+      setFarmerData({ name: FARMERS[randIndex].name, id: FARMERS[randIndex].id });
     });
   };
 
@@ -64,39 +77,53 @@ export default function ATMSimulationPage() {
 
   const handleTimbang = () => {
     simulateProcess('KADAR_AIR', 2000, () => {
-      setBeratKotor(1250);
+      setBeratKotor(FARMERS[selectedFarmerIndex].beratKotor);
     });
   };
 
   const handleKadarAir = () => {
     simulateProcess('KUALITAS', 2500, () => {
-      setKadarAir(22);
+      setKadarAir(FARMERS[selectedFarmerIndex].kadarAir);
     });
   };
 
   const handleKualitas = () => {
     simulateProcess('HITUNG', 3000, () => {
-      setKualitas('Grade B (Sedang)');
+      setKualitas(FARMERS[selectedFarmerIndex].kualitas);
     });
   };
 
   const handleHitung = () => {
     simulateProcess('SELESAI', 2000, () => {
-      // Calculation logic
-      // Base: 1250 kg. Moisture: 22%. Standard moisture: 14%. Diff: 8%.
-      // Deduction rule: e.g., 1.5% deduction per 1% excess moisture
-      const excess = 22 - 14;
-      const deductionPercent = excess * 1.5; // 12%
-      const deductionAmount = 1250 * (deductionPercent / 100);
-      const bersih = 1250 - deductionAmount;
-      
-      const hargaBase = 6500; // Harga dasar Gabah Kering Panen
+      const farmer = FARMERS[selectedFarmerIndex];
+      const excess = farmer.kadarAir > 14 ? farmer.kadarAir - 14 : 0;
+      const deductionPercent = excess * 1.5;
+      const deductionAmount = farmer.beratKotor * (deductionPercent / 100);
+      const bersih = farmer.beratKotor - deductionAmount;
+
+      let hargaBase = 6500;
+      if (farmer.kualitas.includes('Grade A')) hargaBase = 7000;
+      if (farmer.kualitas.includes('Grade C')) hargaBase = 6000;
+
       const total = bersih * hargaBase;
 
       setPotonganKadarAir(deductionAmount);
       setBeratBersih(bersih);
       setHargaPerKg(hargaBase);
       setTotalHarga(total);
+
+      void transactionService.createDeposit({
+        farmerId: farmer.id,
+        daiId: 'DAI-NGW-01',
+        berat_kotor: farmer.beratKotor,
+        berat_bersih: Number(bersih.toFixed(1)),
+        kadar_air: farmer.kadarAir,
+        gabah_hampa: 3,
+        grade: farmer.kualitas.includes('Grade A') ? 'A' : farmer.kualitas.includes('Grade B') ? 'B' : 'C',
+        harga_per_kg: hargaBase,
+        nilai_transaksi: Math.round(total),
+        notes: 'Transaksi dibuat melalui simulasi ATM Gabah Mandiri',
+      }).then(transaction => setReceiptId(transaction.id));
     });
   };
 
@@ -110,38 +137,52 @@ export default function ATMSimulationPage() {
     setBeratBersih(0);
     setHargaPerKg(0);
     setTotalHarga(0);
+    setReceiptId('');
   };
 
   return (
-    <div className="min-h-screen bg-[#F7F3E8] flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
-      <div className="max-w-4xl w-full space-y-8">
+    <div className="flex min-h-[100svh] flex-col items-center justify-center bg-[#F7F3E8] px-3 pb-8 pt-24 font-sans sm:px-6 sm:pb-12 lg:px-8">
+      <div className="w-full max-w-4xl space-y-6 sm:space-y-8">
         <div className="text-center">
-          <h1 className="text-4xl font-extrabold text-hijau-tua tracking-tight">
+          <h1 className="text-3xl font-extrabold tracking-tight text-hijau-tua sm:text-4xl">
             ATM Gabah Mandiri
           </h1>
-          <p className="mt-2 text-lg text-gray-600">
+          <p className="mt-2 text-sm text-gray-600 sm:text-lg">
             Simulasi interaktif setoran gabah NADI-TANI (Data Demo)
           </p>
+        </div>
+
+        <div className="rounded-2xl border border-emerald-100 bg-white/80 p-4 shadow-sm md:hidden">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <span className="text-sm font-bold text-hijau-tua">{steps[currentStepIndex]?.label}</span>
+            <span className="shrink-0 text-xs font-semibold text-gray-500">Tahap {currentStepIndex + 1} dari {steps.length}</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-emerald-100">
+            <div
+              className="h-full rounded-full bg-hijau-pertanian transition-all duration-500"
+              style={{ width: `${((currentStepIndex + 1) / steps.length) * 100}%` }}
+            />
+          </div>
         </div>
 
         {/* Stepper */}
         <div className="hidden md:flex justify-between items-center mb-8 relative">
           <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-gray-200 z-0"></div>
-          <div 
+          <div
             className="absolute left-0 top-1/2 transform -translate-y-1/2 h-1 bg-hijau-pertanian z-0 transition-all duration-500 ease-in-out"
             style={{ width: `${(currentStepIndex / (steps.length - 1)) * 100}%` }}
           ></div>
-          
+
           {steps.map((step, index) => {
             const Icon = step.icon;
             const isActive = index === currentStepIndex;
             const isPast = index < currentStepIndex;
-            
+
             return (
               <div key={step.id} className="relative z-10 flex flex-col items-center">
                 <div className={`w-12 h-12 rounded-full flex items-center justify-center border-4 transition-colors duration-300 ${
-                  isActive ? 'bg-white border-hijau-pertanian text-hijau-pertanian shadow-lg' : 
-                  isPast ? 'bg-hijau-pertanian border-hijau-pertanian text-white' : 
+                  isActive ? 'bg-white border-hijau-pertanian text-hijau-pertanian shadow-lg' :
+                  isPast ? 'bg-hijau-pertanian border-hijau-pertanian text-white' :
                   'bg-white border-gray-200 text-gray-400'
                 }`}>
                   <Icon className="w-5 h-5" />
@@ -155,19 +196,19 @@ export default function ATMSimulationPage() {
         </div>
 
         {/* Main Machine Screen */}
-        <Card className="w-full max-w-2xl mx-auto shadow-2xl rounded-2xl overflow-hidden border-0 ring-1 ring-black/5 bg-[#1E293B]">
-          <div className="h-12 bg-[#0F172A] flex items-center justify-between px-6 border-b border-gray-700">
+        <Card className="mx-auto w-full max-w-2xl overflow-hidden rounded-2xl border-0 !bg-slate-900 text-white shadow-2xl ring-1 ring-black/5">
+          <div className="flex h-12 items-center justify-between gap-2 border-b border-gray-700 bg-[#0F172A] px-4 sm:px-6">
             <span className="text-gray-400 text-xs font-mono">NADI-TANI TERMINAL V1.0</span>
             <span className="text-green-400 text-xs font-mono animate-pulse">ONLINE</span>
           </div>
-          
-          <CardContent className="p-8 min-h-[400px] flex flex-col items-center justify-center text-white relative">
-            
+
+          <CardContent className="relative flex min-h-[360px] flex-col items-center justify-center !bg-slate-900 p-4 text-white sm:min-h-[400px] sm:p-8">
+
             {/* Background Pattern */}
             <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
-            
+
             <AnimatePresence mode="wait">
-              <motion.div 
+              <motion.div
                 key={currentStep}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -184,8 +225,8 @@ export default function ATMSimulationPage() {
                       <h2 className="text-2xl font-bold mb-2">Silakan Tap Kartu Petani</h2>
                       <p className="text-gray-400">Tempelkan kartu NADI-TANI Anda pada area pemindai</p>
                     </div>
-                    <Button 
-                      size="lg" 
+                    <Button
+                      size="lg"
                       className="bg-hijau-pertanian hover:bg-hijau-tua text-white mt-4 rounded-full px-8"
                       onClick={handleScanCard}
                       disabled={isProcessing}
@@ -285,13 +326,13 @@ export default function ATMSimulationPage() {
                       </div>
                     ) : (
                       <div className="space-y-6">
-                        <div className="bg-gray-800 p-8 rounded-2xl border border-gray-700 w-full max-w-sm mx-auto">
+                        <div className="mx-auto w-full max-w-sm rounded-2xl border border-gray-700 bg-gray-800 p-5 sm:p-8">
                           <Microscope className="w-12 h-12 text-purple-400 mx-auto mb-4" />
                           <h2 className="text-2xl font-bold text-white mb-2">Hasil Analisis AI</h2>
                           <div className="inline-block px-4 py-2 bg-purple-500/20 border border-purple-500/50 rounded-lg text-purple-300 font-semibold text-lg">
                             {kualitas}
                           </div>
-                          <div className="mt-4 text-sm text-gray-400 flex justify-between">
+                          <div className="mt-4 flex flex-col justify-between gap-1 text-sm text-gray-400 min-[380px]:flex-row">
                             <span>Gabah Hampa: 3%</span>
                             <span>Kotoran: 1.5%</span>
                           </div>
@@ -316,21 +357,21 @@ export default function ATMSimulationPage() {
                         <h2 className="text-xl font-bold border-b border-gray-700 pb-3 mb-4 flex items-center">
                           <Receipt className="w-5 h-5 mr-2" /> Rincian Kalkulasi
                         </h2>
-                        
+
                         <div className="space-y-3 font-mono text-sm">
-                          <div className="flex justify-between">
+                          <div className="flex flex-wrap justify-between gap-x-4 gap-y-1">
                             <span className="text-gray-400">Berat Kotor:</span>
                             <span className="text-white">{beratKotor} kg</span>
                           </div>
-                          <div className="flex justify-between">
+                          <div className="flex flex-wrap justify-between gap-x-4 gap-y-1">
                             <span className="text-gray-400">Kadar Air ({kadarAir}%):</span>
                             <span className="text-red-400">-{potonganKadarAir.toFixed(1)} kg</span>
                           </div>
-                          <div className="flex justify-between border-t border-gray-700 pt-2">
+                          <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 border-t border-gray-700 pt-2">
                             <span className="text-gray-400">Berat Bersih:</span>
                             <span className="text-green-400 font-bold">{beratBersih.toFixed(1)} kg</span>
                           </div>
-                          <div className="flex justify-between pt-2">
+                          <div className="flex flex-wrap justify-between gap-x-4 gap-y-1 pt-2">
                             <span className="text-gray-400">Harga Dasar (Grade B):</span>
                             <span className="text-white">{formatCurrency(hargaPerKg)}/kg</span>
                           </div>
@@ -338,7 +379,7 @@ export default function ATMSimulationPage() {
 
                         <div className="mt-6 pt-4 border-t-2 border-dashed border-gray-600">
                           <p className="text-sm text-gray-400 mb-1">Total Nilai Transaksi</p>
-                          <p className="text-3xl font-bold text-emas-padi">{formatCurrency(totalHarga)}</p>
+                          <p className="break-words text-2xl font-bold text-emas-padi sm:text-3xl">{formatCurrency(totalHarga)}</p>
                         </div>
 
                         <Button onClick={handleHitung} className="w-full bg-hijau-pertanian hover:bg-hijau-tua mt-6 h-12">
@@ -355,11 +396,13 @@ export default function ATMSimulationPage() {
                       <CheckCircle2 className="w-12 h-12 text-green-500" />
                     </div>
                     <div>
-                      <h2 className="text-3xl font-bold text-white mb-2">Transaksi Berhasil!</h2>
-                      <p className="text-gray-400">Struk digital telah dikirim ke aplikasi petani.</p>
-                      <p className="text-emas-padi font-bold text-xl mt-4">Dana masuk ke NadiPay: {formatCurrency(totalHarga)}</p>
+                      <h2 className="mb-2 text-2xl font-bold text-white sm:text-3xl">Transaksi Berhasil!</h2>
+                      <p className="text-gray-400">Struk digital telah dikirim ke aplikasi petani dan antrean operator.</p>
+                      <p className="mt-2 font-mono text-sm text-green-300">{receiptId || 'Menyimpan nomor transaksi...'}</p>
+                      <p className="text-emas-padi font-bold text-xl mt-4">Nilai setoran: {formatCurrency(totalHarga)}</p>
+                      <p className="mt-2 text-sm text-amber-300">Dana masuk ke NadiPay setelah verifikasi operator.</p>
                     </div>
-                    
+
                     <div className="pt-8 flex flex-col sm:flex-row gap-4 justify-center">
                       <Button onClick={resetSimulation} variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800">
                         Simulasi Transaksi Baru

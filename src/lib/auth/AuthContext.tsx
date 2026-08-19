@@ -1,14 +1,15 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, UserRole } from '@/lib/types';
-import { authService } from '@/lib/services/auth.service';
+import { User } from '@/lib/types';
+import { authService, RegisterInput } from '@/lib/services/auth.service';
 import { useRouter } from 'next/navigation';
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<User>;
+  login: (identifier: string, password: string) => Promise<User>;
+  register: (input: RegisterInput) => Promise<User>;
   logout: () => Promise<void>;
 }
 
@@ -31,16 +32,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
       }
     };
-    
+
     checkUser();
   }, []);
 
-  const login = async (email: string, password: string): Promise<User> => {
+  const login = async (identifier: string, password: string): Promise<User> => {
     setIsLoading(true);
     try {
-      const loggedInUser = await authService.login(email, password);
+      const loggedInUser = await authService.login(identifier, password);
       setUser(loggedInUser);
       return loggedInUser;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const register = async (input: RegisterInput): Promise<User> => {
+    setIsLoading(true);
+    try {
+      const registeredUser = await authService.register(input);
+      setUser(registeredUser);
+      return registeredUser;
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +70,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

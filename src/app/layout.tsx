@@ -55,13 +55,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${plusJakartaSans.variable} h-full`}>
+    <html lang="id" data-scroll-behavior="smooth" className={`${plusJakartaSans.variable} h-full`}>
       <head>
         <link rel="apple-touch-icon" sizes="180x180" href="/logo/logo-bulat-v2.png" />
         <link rel="icon" type="image/png" sizes="32x32" href="/logo/logo-bulat-v2.png" />
         <link rel="icon" type="image/png" sizes="16x16" href="/logo/logo-bulat-v2.png" />
       </head>
-      <body className="min-h-full flex flex-col antialiased bg-slate-50" style={{ fontFamily: "var(--font-sans)" }}>
+      <body className="min-h-full flex flex-col overflow-x-hidden antialiased bg-slate-50" style={{ fontFamily: "var(--font-sans)" }}>
         <NextTopLoader
           color="#2E7D32"
           initialPosition={0.08}

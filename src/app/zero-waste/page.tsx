@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Droplets, Flame, Leaf, Wheat, Calculator, ArrowRight, Wallet } from 'lucide-react';
@@ -13,31 +12,32 @@ export default function ZeroWastePage() {
   const [gabahBerat, setGabahBerat] = useState<number>(1000);
   const [persentaseSekam, setPersentaseSekam] = useState<number>(20);
   const [persentaseBekatul, setPersentaseBekatul] = useState<number>(10);
-  
+  const clamp = (value: number, minimum: number, maximum: number) => Math.min(maximum, Math.max(minimum, Number.isFinite(value) ? value : 0));
+
   // Asumsi harga per kg (simulasi)
   const hargaSekam = 500;
   const hargaBekatul = 2000;
-  
+
   // Kalkulasi
   const estimasiSekam = gabahBerat * (persentaseSekam / 100);
   const estimasiBekatul = gabahBerat * (persentaseBekatul / 100);
   const omzetSekam = estimasiSekam * hargaSekam;
   const omzetBekatul = estimasiBekatul * hargaBekatul;
   const totalOmzet = omzetSekam + omzetBekatul;
-  
+
   // Simulasi biaya pengolahan 40%
   const biayaPengolahan = totalOmzet * 0.4;
   const pendapatanBersih = totalOmzet - biayaPengolahan;
-  
+
   // Simulasi pembagian hasil ke petani 30% dari pendapatan bersih
   const bagianPetani = pendapatanBersih * 0.3;
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 pt-20 overflow-hidden relative">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-slate-50 pt-16 sm:pt-20">
       <div className="absolute top-0 right-0 w-full h-[550px] bg-gradient-to-bl from-green-900 via-primary-900 to-primary-800 z-0 opacity-10"></div>
-      
-      <div className="container mx-auto px-4 lg:px-8 py-20 relative z-10">
-        <motion.div 
+
+      <div className="container relative z-10 mx-auto px-4 py-10 sm:py-16 lg:px-8 lg:py-20">
+        <motion.div
           className="max-w-4xl mx-auto text-center mb-20"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -56,7 +56,7 @@ export default function ZeroWastePage() {
         </motion.div>
 
         {/* 4 Alur Hilirisasi */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl mx-auto mb-24">
+        <div className="mx-auto mb-14 grid max-w-5xl grid-cols-1 gap-6 md:mb-24 md:grid-cols-2 md:gap-8">
           {[
             {
               title: "Sekam Padi",
@@ -127,7 +127,7 @@ export default function ZeroWastePage() {
         </div>
 
         {/* Kalkulator Simulasi */}
-        <motion.div 
+        <motion.div
           className="max-w-4xl mx-auto mb-12"
           initial={{ opacity: 0, scale: 0.95 }}
           whileInView={{ opacity: 1, scale: 1 }}
@@ -146,39 +146,47 @@ export default function ZeroWastePage() {
                 Simulasikan nilai tambah yang dapat dihasilkan dari pengolahan hasil samping gabah.
               </p>
             </CardHeader>
-            <CardContent className="p-8 md:p-10">
+            <CardContent className="p-4 sm:p-6 md:p-10">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                 {/* Inputs */}
                 <div className="space-y-8">
                   <div>
                     <Label htmlFor="gabahBerat" className="text-slate-700 text-base font-bold mb-2 block">Total Gabah Diproses (kg)</Label>
-                    <Input 
+                    <Input
                       id="gabahBerat"
                       type="number"
+                      min="0"
+                      step="1"
                       value={gabahBerat}
-                      onChange={(e) => setGabahBerat(Number(e.target.value))}
+                      onChange={(e) => setGabahBerat(Math.max(0, Number(e.target.value) || 0))}
                       className="text-lg py-6 border-slate-300 focus:border-primary-500 rounded-xl"
                     />
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-6">
                     <div>
                       <Label htmlFor="persentaseSekam" className="text-slate-700 text-sm font-bold mb-2 block">Persentase Sekam (%)</Label>
-                      <Input 
+                      <Input
                         id="persentaseSekam"
                         type="number"
+                        min="0"
+                        max={100 - persentaseBekatul}
+                        step="0.1"
                         value={persentaseSekam}
-                        onChange={(e) => setPersentaseSekam(Number(e.target.value))}
+                        onChange={(e) => setPersentaseSekam(clamp(Number(e.target.value), 0, 100 - persentaseBekatul))}
                         className="text-lg py-6 border-slate-300 rounded-xl"
                       />
                     </div>
                     <div>
                       <Label htmlFor="persentaseBekatul" className="text-slate-700 text-sm font-bold mb-2 block">Persentase Bekatul (%)</Label>
-                      <Input 
+                      <Input
                         id="persentaseBekatul"
                         type="number"
+                        min="0"
+                        max={100 - persentaseSekam}
+                        step="0.1"
                         value={persentaseBekatul}
-                        onChange={(e) => setPersentaseBekatul(Number(e.target.value))}
+                        onChange={(e) => setPersentaseBekatul(clamp(Number(e.target.value), 0, 100 - persentaseSekam))}
                         className="text-lg py-6 border-slate-300 rounded-xl"
                       />
                     </div>
@@ -186,11 +194,11 @@ export default function ZeroWastePage() {
                 </div>
 
                 {/* Outputs */}
-                <div className="bg-gradient-to-br from-slate-50 to-slate-100 p-8 rounded-3xl border border-slate-200 shadow-inner">
+                <div className="rounded-2xl border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 p-4 shadow-inner sm:rounded-3xl sm:p-8">
                   <h4 className="font-extrabold text-slate-800 text-xl mb-6 flex items-center justify-between">
                     <span>Proyeksi Nilai Ekonomi</span>
                   </h4>
-                  
+
                   <div className="space-y-4 text-base">
                     <div className="flex justify-between items-center p-3 bg-white rounded-lg shadow-sm">
                       <span className="text-slate-600 font-medium">Potensi Sekam:</span>
@@ -200,9 +208,9 @@ export default function ZeroWastePage() {
                       <span className="text-slate-600 font-medium">Potensi Bekatul:</span>
                       <span className="font-bold text-slate-800">{formatWeight(estimasiBekatul)}</span>
                     </div>
-                    
+
                     <div className="h-px bg-slate-200 my-4"></div>
-                    
+
                     <div className="flex justify-between items-center px-2">
                       <span className="text-slate-600 font-medium">Estimasi Omzet:</span>
                       <span className="font-bold text-slate-800">{formatRupiah(totalOmzet)}</span>
@@ -211,14 +219,14 @@ export default function ZeroWastePage() {
                       <span className="font-medium">Biaya Operasional (40%):</span>
                       <span className="font-bold">-{formatRupiah(biayaPengolahan)}</span>
                     </div>
-                    
+
                     <div className="flex justify-between items-center p-4 bg-primary-100 rounded-xl mt-4 border border-primary-200">
                       <span className="font-extrabold text-primary-900">Pendapatan Bersih:</span>
                       <span className="font-black text-xl text-primary-700">{formatRupiah(pendapatanBersih)}</span>
                     </div>
                   </div>
 
-                  <motion.div 
+                  <motion.div
                     className="mt-6 bg-gradient-to-r from-yellow-50 to-amber-100 p-6 rounded-2xl border border-amber-200 shadow-md relative overflow-hidden"
                     whileHover={{ scale: 1.02 }}
                   >

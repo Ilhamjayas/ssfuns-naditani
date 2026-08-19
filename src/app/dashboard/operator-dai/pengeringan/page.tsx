@@ -23,7 +23,7 @@ export default function PengeringanPage() {
         setIsLoading(false);
       }
     }
-    
+
     loadData();
   }, []);
 
@@ -83,12 +83,12 @@ export default function PengeringanPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-hijau-tua">Proses Pengeringan</h1>
           <p className="text-gray-500 mt-1">Pemantauan dan kontrol mesin pengering gabah (Bed Dryer).</p>
         </div>
-        <Button onClick={handleStartNewBatch} className="bg-hijau-pertanian hover:bg-hijau-tua">
+        <Button onClick={handleStartNewBatch} className="w-full bg-hijau-pertanian hover:bg-hijau-tua sm:w-auto">
           Mulai Batch Baru
         </Button>
       </div>
@@ -102,11 +102,11 @@ export default function PengeringanPage() {
           processes.map(process => {
             // Mocking progress for visual purposes if not available
             const progress = process.status === 'completed' ? 100 : (process.status === 'running' ? 65 : 0);
-            
+
             return (
               <Card key={process.id} className="overflow-hidden border-t-4 border-t-emas-padi">
                 <CardHeader className="bg-gray-50 pb-4">
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-col gap-2 min-[400px]:flex-row min-[400px]:items-start min-[400px]:justify-between">
                     <div>
                       <CardTitle className="text-lg">{process.id}</CardTitle>
                       <CardDescription>Batch: {process.batchId}</CardDescription>
@@ -122,8 +122,8 @@ export default function PengeringanPage() {
                       <span className="text-gray-500">Mesin ID</span>
                       <span className="font-semibold">{process.machineId}</span>
                     </div>
-                    
-                    <div className="grid grid-cols-2 gap-4">
+
+                    <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 sm:gap-4">
                       <div className="bg-orange-50 p-3 rounded-lg flex items-center gap-3 border border-orange-100">
                         <Thermometer className="h-5 w-5 text-orange-500" />
                         <div>
@@ -146,14 +146,14 @@ export default function PengeringanPage() {
                         <span className="font-bold text-hijau-pertanian">{progress}%</span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
+                        <div
                           className="bg-hijau-pertanian h-2 rounded-full transition-all"
                           style={{ width: `${progress}%` }}
                         ></div>
                       </div>
                     </div>
 
-                    <div className="flex justify-between text-xs text-gray-500 pt-2 border-t mt-4">
+                    <div className="mt-4 flex flex-col gap-2 border-t pt-2 text-xs text-gray-500 min-[400px]:flex-row min-[400px]:justify-between">
                       <div className="flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         <span>Mulai: {new Date(process.startTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</span>

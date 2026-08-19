@@ -3,6 +3,7 @@ export type UserRole = 'petani' | 'operator_atm' | 'pengelola_dai' | 'pemerintah
 export interface User {
   id: string;
   name: string;
+  username?: string;
   email: string;
   role: UserRole;
   avatarUrl?: string;
@@ -97,6 +98,10 @@ export interface PickupSchedule {
   estimatedWeight: number;
   status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
   driverId?: string;
+  method?: 'antar' | 'jemput';
+  pickupLocation?: string;
+  notes?: string;
+  createdAt?: string;
 }
 
 export interface ProductionBatch {

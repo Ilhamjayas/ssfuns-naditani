@@ -31,8 +31,8 @@ export default function DompetPage() {
       setLoading(true);
       try {
         const balance = await walletService.getWalletBalance(user.id);
-        const history = await walletService.getWalletHistory(user.id);
-        
+        const history = await walletService.getWalletHistory(balance.id);
+
         setWallet(balance);
         setTransactions(history);
       } catch (error) {
@@ -43,19 +43,19 @@ export default function DompetPage() {
     };
 
     fetchWalletData();
-  }, []);
+  }, [user]);
 
   const handleWithdraw = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!wallet) return;
-    
+
     setIsWithdrawing(true);
     try {
       const amount = parseInt(withdrawAmount, 10);
       await walletService.requestWithdrawal(wallet.id, amount, bankInfo);
       setWithdrawSuccess(true);
       toast.success(`Berhasil menarik Rp ${formatRupiah(amount)}`);
-      
+
       // Wait a bit, then refresh the list (mock behavior will just append locally or reset)
       setTimeout(async () => {
         setWithdrawSuccess(false);
@@ -63,14 +63,14 @@ export default function DompetPage() {
         setBankInfo('');
         if (user) {
           const balance = await walletService.getWalletBalance(user.id);
-          const history = await walletService.getWalletHistory(user.id);
+          const history = await walletService.getWalletHistory(balance.id);
           setWallet(balance);
           setTransactions(history);
         }
       }, 2500);
     } catch (error) {
       console.error('Withdrawal failed', error);
-      toast.error('Penarikan gagal diproses');
+      toast.error(error instanceof Error ? error.message : 'Penarikan gagal diproses');
     } finally {
       setIsWithdrawing(false);
     }
@@ -98,7 +98,7 @@ export default function DompetPage() {
             {loading ? (
               <Skeleton className="h-10 w-3/4 bg-white/20" />
             ) : (
-              <div className="text-3xl font-bold tracking-tight">
+              <div className="break-words text-2xl font-bold tracking-tight min-[400px]:text-3xl">
                 {wallet ? formatRupiah(wallet.balance) : 'Rp 0'}
               </div>
             )}
@@ -123,10 +123,10 @@ export default function DompetPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="amount">Jumlah Penarikan (Rp)</Label>
-                    <Input 
-                      id="amount" 
-                      type="number" 
-                      placeholder="Minimal 50000" 
+                    <Input
+                      id="amount"
+                      type="number"
+                      placeholder="Minimal 50000"
                       min="50000"
                       max={wallet?.balance || 0}
                       required
@@ -136,10 +136,10 @@ export default function DompetPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="bank">Rekening Tujuan</Label>
-                    <Input 
-                      id="bank" 
-                      type="text" 
-                      placeholder="Contoh: BRI 1234xxxx a.n Budi" 
+                    <Input
+                      id="bank"
+                      type="text"
+                      placeholder="Contoh: BRI 1234xxxx a.n Budi"
                       required
                       value={bankInfo}
                       onChange={(e) => setBankInfo(e.target.value)}
@@ -147,9 +147,9 @@ export default function DompetPage() {
                   </div>
                 </div>
                 <div className="flex justify-end">
-                  <Button 
-                    type="submit" 
-                    className="bg-primary-600 hover:bg-primary-700 text-white" 
+                  <Button
+                    type="submit"
+                    className="w-full bg-primary-600 text-white hover:bg-primary-700 sm:w-auto"
                     disabled={isWithdrawing || !wallet || wallet.balance < 50000}
                     onClick={() => {
                       if (!wallet || wallet.balance < 50000) {
@@ -171,8 +171,8 @@ export default function DompetPage() {
           <CardTitle className="text-lg">Riwayat Transaksi</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <Table>
+          <div className="overflow-x-auto rounded-lg border border-slate-100">
+            <Table className="min-w-[640px]">
               <TableHeader>
                 <TableRow>
                   <TableHead>Tanggal</TableHead>

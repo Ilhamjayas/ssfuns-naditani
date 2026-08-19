@@ -3,47 +3,197 @@ import { DEMO_CREDENTIALS } from '../utils/constants';
 
 // Simulated delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+const REGISTERED_ACCOUNTS_KEY = 'nadi_registered_accounts';
+const PASSWORD_OVERRIDES_KEY = 'nadi_password_overrides';
+
+export interface RegisterInput {
+  name: string;
+  username: string;
+  email: string;
+  password: string;
+  role: UserRole;
+}
+
+interface RegisteredAccount extends RegisterInput {
+  id: string;
+  createdAt: string;
+  isActive?: boolean;
+}
+
+export interface RegisteredAccountSummary {
+  id: string;
+  name: string;
+  username: string;
+  email: string;
+  role: UserRole;
+  createdAt: string;
+  isActive: boolean;
+}
+
+function getRegisteredAccounts(): RegisteredAccount[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const stored = localStorage.getItem(REGISTERED_ACCOUNTS_KEY);
+    return stored ? JSON.parse(stored) as RegisteredAccount[] : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveSession(user: User) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('nadi_user', JSON.stringify(user));
+  }
+}
+
+function saveRegisteredAccounts(accounts: RegisteredAccount[]) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(REGISTERED_ACCOUNTS_KEY, JSON.stringify(accounts));
+  }
+}
+
+function getPasswordOverrides(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const stored = localStorage.getItem(PASSWORD_OVERRIDES_KEY);
+    return stored ? JSON.parse(stored) as Record<string, string> : {};
+  } catch {
+    return {};
+  }
+}
 
 export const authService = {
-  async login(email: string, password: string): Promise<User> {
+  async login(identifier: string, password: string): Promise<User> {
     await delay(500);
-    
-    const cred = DEMO_CREDENTIALS.find(c => c.email === email && c.password === password);
-    
-    if (!cred) {
-      throw new Error('Email atau kata sandi salah');
+
+    const normalizedIdentifier = identifier.trim().toLowerCase();
+    const passwordOverrides = getPasswordOverrides();
+    const demoAccount = DEMO_CREDENTIALS.find(credential => {
+      const userId = `user-${credential.role}-1`;
+      return (credential.username.toLowerCase() === normalizedIdentifier || credential.email.toLowerCase() === normalizedIdentifier) &&
+        (passwordOverrides[userId] || credential.password) === password;
+    });
+    const registeredAccount = getRegisteredAccounts().find(account =>
+      (account.username.toLowerCase() === normalizedIdentifier || account.email.toLowerCase() === normalizedIdentifier) &&
+      account.password === password
+    );
+
+    const account = demoAccount || registeredAccount;
+    if (!account) {
+      throw new Error('Username, email, atau kata sandi tidak sesuai');
     }
-    
+    if (registeredAccount?.isActive === false) {
+      throw new Error('Akun ini sedang dinonaktifkan. Hubungi admin NADI-TANI');
+    }
+
     const user: User = {
-      id: `user-${cred.role}-1`,
-      name: cred.name,
-      email: cred.email,
-      role: cred.role,
-      createdAt: new Date().toISOString(),
+      id: registeredAccount ? registeredAccount.id : `user-${account.role}-1`,
+      name: account.name,
+      username: account.username,
+      email: account.email,
+      role: account.role,
+      createdAt: registeredAccount ? registeredAccount.createdAt : new Date().toISOString(),
     };
-    
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('nadi_user', JSON.stringify(user));
-    }
-    
+
+    saveSession(user);
     return user;
   },
-  
+
+  async register(input: RegisterInput): Promise<User> {
+    await delay(650);
+    const accounts = getRegisteredAccounts();
+    const normalizedUsername = input.username.trim().toLowerCase();
+    const normalizedEmail = input.email.trim().toLowerCase();
+    const usernameExists = DEMO_CREDENTIALS.some(account => account.username === normalizedUsername) || accounts.some(account => account.username.toLowerCase() === normalizedUsername);
+    const emailExists = DEMO_CREDENTIALS.some(account => account.email === normalizedEmail) || accounts.some(account => account.email.toLowerCase() === normalizedEmail);
+
+    if (usernameExists) throw new Error('Username sudah digunakan');
+    if (emailExists) throw new Error('Email sudah terdaftar');
+
+    const newAccount: RegisteredAccount = {
+      ...input,
+      id: `user-${input.role}-${Date.now()}`,
+      name: input.name.trim(),
+      username: normalizedUsername,
+      email: normalizedEmail,
+      isActive: true,
+      createdAt: new Date().toISOString(),
+    };
+    saveRegisteredAccounts([...accounts, newAccount]);
+
+    const user: User = {
+      id: newAccount.id,
+      name: newAccount.name,
+      username: newAccount.username,
+      email: newAccount.email,
+      role: newAccount.role,
+      createdAt: newAccount.createdAt,
+    };
+    saveSession(user);
+    return user;
+  },
+
   async logout(): Promise<void> {
     await delay(300);
     if (typeof window !== 'undefined') {
       localStorage.removeItem('nadi_user');
     }
   },
-  
+
+  getRegisteredAccountSummaries(): RegisteredAccountSummary[] {
+    return getRegisteredAccounts().map(({ id, name, username, email, role, createdAt, isActive }) => ({
+      id,
+      name,
+      username,
+      email,
+      role,
+      createdAt,
+      isActive: isActive !== false,
+    }));
+  },
+
+  setRegisteredAccountActive(id: string, isActive: boolean): void {
+    const accounts = getRegisteredAccounts();
+    const account = accounts.find(item => item.id === id);
+    if (!account) throw new Error('Akun terdaftar tidak ditemukan');
+    account.isActive = isActive;
+    saveRegisteredAccounts(accounts);
+
+    const currentUser = this.getCurrentUser();
+    if (!isActive && currentUser?.id === id) localStorage.removeItem('nadi_user');
+  },
+
+  async changePassword(user: User, currentPassword: string, newPassword: string): Promise<void> {
+    await delay(350);
+    if (!currentPassword) throw new Error('Password saat ini wajib diisi');
+    if (newPassword.length < 8) throw new Error('Password baru minimal 8 karakter');
+    if (currentPassword === newPassword) throw new Error('Password baru harus berbeda dari password saat ini');
+
+    const accounts = getRegisteredAccounts();
+    const registeredAccount = accounts.find(account => account.id === user.id);
+    if (registeredAccount) {
+      if (registeredAccount.password !== currentPassword) throw new Error('Password saat ini tidak sesuai');
+      registeredAccount.password = newPassword;
+      saveRegisteredAccounts(accounts);
+      return;
+    }
+
+    const demoAccount = DEMO_CREDENTIALS.find(account => `user-${account.role}-1` === user.id);
+    if (!demoAccount) throw new Error('Akun tidak ditemukan');
+    const overrides = getPasswordOverrides();
+    if ((overrides[user.id] || demoAccount.password) !== currentPassword) throw new Error('Password saat ini tidak sesuai');
+    overrides[user.id] = newPassword;
+    localStorage.setItem(PASSWORD_OVERRIDES_KEY, JSON.stringify(overrides));
+  },
+
   getCurrentUser(): User | null {
     if (typeof window === 'undefined') return null;
-    
+
     const stored = localStorage.getItem('nadi_user');
     if (stored) {
       try {
         return JSON.parse(stored) as User;
-      } catch (e) {
+      } catch {
         return null;
       }
     }

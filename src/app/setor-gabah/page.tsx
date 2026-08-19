@@ -6,8 +6,8 @@ import { Button } from '@/components/ui/button';
 
 export default function SetorGabahInfoPage() {
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 pt-20">
-      <div className="bg-primary-900 text-white py-16 px-4 lg:px-8">
+    <div className="flex min-h-screen flex-col bg-slate-50 pt-16 sm:pt-20">
+      <div className="bg-primary-900 px-4 py-12 text-white sm:py-16 lg:px-8">
         <div className="container mx-auto max-w-4xl text-center">
           <h1 className="text-display font-bold mb-6">Mulai Setor Gabah</h1>
           <p className="text-primary-100 text-lg max-w-2xl mx-auto mb-8">
@@ -28,9 +28,9 @@ export default function SetorGabahInfoPage() {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 lg:px-8 py-16 max-w-5xl">
+      <div className="container mx-auto max-w-5xl px-4 py-10 sm:py-16 lg:px-8">
         <h2 className="text-h2 font-bold text-slate-800 text-center mb-12">Dua Cara Menyetorkan Gabah</h2>
-        
+
         <div className="grid md:grid-cols-2 gap-8 mb-16">
           <Card className="border-t-4 border-t-primary-500 hover:shadow-card-hover transition-all">
             <CardContent className="p-8">
@@ -73,7 +73,7 @@ export default function SetorGabahInfoPage() {
           </Card>
         </div>
 
-        <div className="bg-slate-100 rounded-3xl p-8 lg:p-12 text-center">
+        <div className="rounded-2xl bg-slate-100 p-5 text-center sm:rounded-3xl sm:p-8 lg:p-12">
           <h2 className="text-2xl font-bold text-slate-800 mb-4">Langkah Penggunaan Aplikasi</h2>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-10">
             {[

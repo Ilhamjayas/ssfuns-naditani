@@ -6,68 +6,32 @@ import { usePathname } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { 
-  Home, 
-  Wallet, 
-  History, 
-  CreditCard,
-  Factory,
-  CheckCircle2,
-  ThermometerSun,
-  BarChart3,
-  Map,
-  LogOut,
-  TrendingUp
-} from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { getDashboardNavItems } from '@/lib/navigation/dashboard';
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
-  const router = useRouter();
+  const { user } = useAuth();
 
-  const handleLogout = async () => {
-    await logout();
-    router.push('/masuk');
-  };
-
-  // Dynamic navigation based on role
-  const getNavItems = () => {
-    if (!user) return [];
-
-    if (user.role === 'petani') {
-      return [
-        { name: 'Ringkasan', href: '/dashboard/petani', icon: Home },
-        { name: 'Dompet Digital', href: '/dashboard/petani/dompet', icon: Wallet },
-        { name: 'Riwayat Setor', href: '/dashboard/petani/riwayat-setor', icon: History },
-      ];
-    }
-    
-    if (user.role === 'operator_atm' || user.role === 'pengelola_dai') {
-      return [
-        { name: 'Ringkasan DAI', href: '/dashboard/operator-dai', icon: Factory },
-        { name: 'Penerimaan', href: '/dashboard/operator-dai/penerimaan', icon: CheckCircle2 },
-        { name: 'Pengeringan', href: '/dashboard/operator-dai/pengeringan', icon: ThermometerSun },
-      ];
-    }
-    
-    if (user.role === 'pemerintah' || user.role === 'admin') {
-      return [
-        { name: 'Ringkasan Nasional', href: '/dashboard/pemerintah', icon: BarChart3 },
-        { name: 'Peta Pasokan', href: '/dashboard/pemerintah/peta-pasokan', icon: Map },
-        { name: 'Proyeksi NTP', href: '/dashboard/pemerintah/proyeksi-ntp', icon: TrendingUp },
-      ];
-    }
-
-    return [{ name: 'Dashboard', href: `/dashboard/${user.role}`, icon: Home }];
-  };
-
-  const navItems = getNavItems();
+  const navItems = getDashboardNavItems(user?.role);
+  const roleLabel = {
+    petani: 'Petani',
+    operator_atm: 'Operator ATM',
+    pengelola_dai: 'Pengelola DAI',
+    pemerintah: 'Pemerintah',
+    mitra: 'Mitra Industri',
+    admin: 'Administrator',
+  }[user?.role || 'petani'];
+  const initials = user?.name
+    ?.split(' ')
+    .slice(0, 2)
+    .map(part => part[0])
+    .join('')
+    .toUpperCase() || 'NT';
 
   return (
-    <div className="hidden border-r bg-white/50 backdrop-blur-md md:block md:w-64 lg:w-72 shadow-sm">
-      <div className="flex h-full max-h-screen flex-col gap-2 pt-6">
-        <div className="px-6 mb-4">
+    <aside className="sticky top-16 hidden h-[calc(100dvh-4rem)] w-64 shrink-0 border-r border-slate-200/70 bg-white lg:block xl:w-72">
+      <div className="flex h-full max-h-screen flex-col gap-2 pt-7">
+        <div className="mb-3 px-6">
           <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Menu Utama</h2>
         </div>
         <div className="flex-1 overflow-auto py-2">
@@ -75,7 +39,7 @@ export function Sidebar() {
             {navItems.map((item, index) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
-              
+
               return (
                 <Link
                   key={index}
@@ -87,13 +51,13 @@ export function Sidebar() {
                     whileTap={{ scale: 0.98 }}
                     className={cn(
                       "flex items-center gap-3 rounded-xl px-4 py-3 transition-colors relative z-10",
-                      isActive 
-                        ? "text-primary-700 font-semibold" 
+                      isActive
+                        ? "text-primary-700 font-semibold"
                         : "text-slate-600 hover:text-primary-600"
                     )}
                   >
                     <Icon className={cn("h-5 w-5 transition-transform", isActive ? "scale-110" : "group-hover:scale-110")} />
-                    {item.name}
+                    <span className="truncate">{item.name}</span>
                   </motion.div>
 
                   {/* Active Indicator Background */}
@@ -102,7 +66,7 @@ export function Sidebar() {
                       className="absolute inset-0 bg-primary-50 rounded-xl border border-primary-100 z-0"
                     />
                   )}
-                  
+
                   {/* Hover Background */}
                   {!isActive && (
                     <div className="absolute inset-0 bg-slate-50 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity z-0" />
@@ -112,8 +76,23 @@ export function Sidebar() {
             })}
           </nav>
         </div>
-        
+        <div className="p-4 pt-2">
+          <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-3.5 shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-sm font-extrabold text-white shadow-sm">
+                {initials}
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-slate-800">{user?.name || 'Pengguna'}</p>
+                <p className="mt-0.5 truncate text-xs font-medium text-emerald-700">{roleLabel}</p>
+              </div>
+            </div>
+            <div className="mt-3 flex items-center gap-2 border-t border-emerald-100 pt-3 text-[11px] font-semibold text-slate-500">
+              <span className="h-2 w-2 rounded-full bg-emerald-500" /> Akun aktif dan terhubung
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
+    </aside>
   );
 }

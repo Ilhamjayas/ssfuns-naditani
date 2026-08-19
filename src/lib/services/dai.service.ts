@@ -1,8 +1,8 @@
 import { DaiLocation, ProductionBatch, DryingProcess, MillingProcess, WarehouseStock } from '../types';
 import { mockDaiLocations } from '../data/dai-locations';
 import { mockBatches, mockDryingProcesses, mockMillingProcesses } from '../data/batches';
-import { mockWarehouseStock } from '../data/warehouse';
 import { mockMachines } from '../data/machines';
+import { getDemoState } from '../demo/demo-store';
 
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -10,15 +10,15 @@ export const daiService = {
   async getDaiInfo(id: string): Promise<DaiLocation> {
     await delay(50);
     const dai = mockDaiLocations.find(d => d.id === id);
-    if (!dai) throw new Error('DAI tidak ditemukan');
-    return dai;
+    return dai || mockDaiLocations[0];
   },
-  
+
   async getBatches(daiId: string): Promise<ProductionBatch[]> {
     await delay(50);
-    return mockBatches.filter(b => b.daiId === daiId);
+    const batches = mockBatches.filter(b => b.daiId === daiId);
+    return batches.length > 0 ? batches : mockBatches;
   },
-  
+
   async getDryingProcesses(batchId?: string): Promise<DryingProcess[]> {
     await delay(50);
     if (batchId) {
@@ -26,7 +26,7 @@ export const daiService = {
     }
     return [...mockDryingProcesses];
   },
-  
+
   async getMillingProcesses(batchId?: string): Promise<MillingProcess[]> {
     await delay(50);
     if (batchId) {
@@ -34,14 +34,17 @@ export const daiService = {
     }
     return [...mockMillingProcesses];
   },
-  
+
   async getWarehouseStock(daiId: string): Promise<WarehouseStock[]> {
     await delay(50);
-    return mockWarehouseStock.filter(w => w.daiId === daiId);
+    const allStock = getDemoState().warehouseStock;
+    const stock = allStock.filter(w => w.daiId === daiId);
+    return stock.length > 0 ? stock : allStock;
   },
-  
+
   async getMachines(daiId: string) {
     await delay(50);
-    return mockMachines.filter(m => m.daiId === daiId);
+    const machines = mockMachines.filter(m => m.daiId === daiId);
+    return machines.length > 0 ? machines : mockMachines;
   }
 };

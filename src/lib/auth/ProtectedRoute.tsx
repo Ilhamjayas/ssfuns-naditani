@@ -2,9 +2,8 @@
 
 import React, { useEffect } from 'react';
 import { useAuth } from './AuthContext';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Loader2 } from 'lucide-react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -14,7 +13,6 @@ interface ProtectedRouteProps {
 export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
     if (!isLoading) {
@@ -53,7 +51,7 @@ export function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) 
       <div className="flex h-screen w-full items-center justify-center bg-krem/30">
         <div className="flex flex-col items-center space-y-4">
           <div className="relative h-16 w-16 animate-pulse">
-            <Image src="/logo/logo-bulat-v2.png" alt="Loading" fill className="object-contain" />
+            <Image src="/logo/logo-bulat-v2.png" alt="Loading" fill sizes="64px" className="object-contain" priority />
           </div>
           <p className="text-sm font-medium text-hijauTua animate-pulse">Memuat halaman...</p>
         </div>

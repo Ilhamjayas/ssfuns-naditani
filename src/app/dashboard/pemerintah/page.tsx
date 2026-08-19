@@ -3,8 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { analyticsService } from '@/lib/services/analytics.service';
 import { StatCard } from '@/components/ui/StatCard';
-import { Users, Sprout, Tractor, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Users, LandPlot, Wheat, PackageCheck, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { Skeleton } from '@/components/ui/skeleton';
 import { NationalStats } from '@/lib/types';
@@ -60,7 +59,7 @@ export default function PemerintahDashboard() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-hijauTua">Dashboard Pemerintah</h1>
+          <h1 className="text-2xl font-bold text-hijauTua sm:text-3xl">Dashboard Pemerintah</h1>
           <p className="text-muted-foreground mt-1">Ringkasan Statistik Pangan Nasional (Simulasi)</p>
         </div>
       </div>
@@ -77,24 +76,24 @@ export default function PemerintahDashboard() {
         <StatCard
           title="Luas Lahan (Ha)"
           value={formatNumber(stats.luasLahan)}
-          icon={Sprout}
-          color="text-hijauPertanian bg-hijauMuda"
+          icon={LandPlot}
+          color="text-emerald-700 bg-emerald-100"
           description="Total area panen"
           index={1}
         />
         <StatCard
           title="Produksi GKG (Ton)"
           value={formatNumber(stats.produksiGKG)}
-          icon={Tractor}
-          color="text-emasPadi bg-yellow-100"
+          icon={Wheat}
+          color="text-amber-700 bg-amber-100"
           description="Gabah Kering Giling"
           index={2}
         />
         <StatCard
           title="Produksi Beras (Ton)"
           value={formatNumber(stats.produksiBeras)}
-          icon={Tractor}
-          color="text-hijauTua bg-krem"
+          icon={PackageCheck}
+          color="text-violet-700 bg-violet-100"
           description="Estimasi beras"
           index={3}
         />
@@ -108,7 +107,7 @@ export default function PemerintahDashboard() {
               Analisis geospasial pasokan beras, jumlah petani, dan distribusi DAI di berbagai provinsi (Data Demo).
             </p>
           </div>
-          <Link href="/dashboard/pemerintah/peta-pasokan" className="inline-flex h-10 items-center justify-center rounded-xl bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 w-fit">
+          <Link href="/dashboard/pemerintah/peta-pasokan" className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 sm:w-fit">
             Lihat Peta
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>
@@ -121,7 +120,7 @@ export default function PemerintahDashboard() {
               Nilai Tukar Petani dan prediksinya menggunakan model LSTM berbasis data historis (Simulasi).
             </p>
           </div>
-          <Link href="/dashboard/pemerintah/proyeksi-ntp" className="inline-flex h-10 items-center justify-center rounded-xl bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 w-fit">
+          <Link href="/dashboard/pemerintah/proyeksi-ntp" className="inline-flex h-10 w-full items-center justify-center rounded-xl bg-primary-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary-700 sm:w-fit">
             Lihat Proyeksi
             <ArrowRight className="ml-2 h-4 w-4" />
           </Link>

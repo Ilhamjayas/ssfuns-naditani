@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { NtpChart } from '@/components/charts/NtpChart';
 import { analyticsService } from '@/lib/services/analytics.service';
-import { Button } from '@/components/ui/button';
 import { ArrowLeft, Info } from 'lucide-react';
 import Link from 'next/link';
 import { NTPData } from '@/lib/types';
@@ -28,7 +27,7 @@ export default function ProyeksiNTPPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
+      <div className="flex items-start gap-3 sm:items-center sm:gap-4">
         <Link href="/dashboard/pemerintah" className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-input bg-white hover:bg-slate-100">
           <ArrowLeft className="h-4 w-4" />
         </Link>
@@ -41,7 +40,7 @@ export default function ProyeksiNTPPage() {
       <div className="bg-white p-4 md:p-6 rounded-xl shadow-sm border border-slate-100">
         <h3 className="font-bold text-lg mb-4">Tren Nilai Tukar Petani (Tanaman Pangan)</h3>
         {loading ? (
-          <div className="h-[400px] flex items-center justify-center bg-slate-50 animate-pulse rounded-lg">
+          <div className="flex h-[300px] items-center justify-center rounded-lg bg-slate-50 animate-pulse sm:h-[400px]">
             Memuat grafik...
           </div>
         ) : (
@@ -49,7 +48,7 @@ export default function ProyeksiNTPPage() {
         )}
       </div>
 
-      <div className="bg-blue-50/50 p-6 rounded-xl border border-blue-100 flex gap-4">
+      <div className="flex flex-col gap-3 rounded-xl border border-blue-100 bg-blue-50/50 p-4 sm:flex-row sm:gap-4 sm:p-6">
         <Info className="h-6 w-6 text-blue-600 shrink-0" />
         <div className="text-sm text-blue-900 space-y-2">
           <p>

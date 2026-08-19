@@ -1,26 +1,37 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { notificationService } from '@/lib/services/notification.service';
 import { Notification } from '@/lib/types';
-import { formatDateTime, getRelativeTime } from '@/lib/utils/format';
-import { Bell, Check, Info, AlertTriangle, CheckCircle, TrendingUp } from 'lucide-react';
+import { getRelativeTime } from '@/lib/utils/format';
+import { Bell, Check, Info, AlertTriangle, CheckCircle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/lib/auth/AuthContext';
+
+const notificationFilters = [
+  { label: 'Semua', value: 'semua' },
+  { label: 'Transaksi', value: 'transaksi' },
+  { label: 'Pertanian', value: 'pertanian' },
+  { label: 'Cuaca', value: 'cuaca' },
+  { label: 'Subsidi', value: 'subsidi' },
+  { label: 'Edukasi', value: 'edukasi' },
+  { label: 'Sistem', value: 'sistem' },
+] as const;
 
 export default function NotificationPage() {
+  const { user, isLoading: isAuthLoading } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState('Semua');
+  const [filter, setFilter] = useState('semua');
 
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const data = await notificationService.getNotifications();
+        const data = await notificationService.getNotifications(user?.id);
         setNotifications(data);
       } catch (error) {
         console.error(error);
@@ -29,18 +40,18 @@ export default function NotificationPage() {
       }
     };
 
-    fetchData();
-  }, []);
+    if (!isAuthLoading) void fetchData();
+  }, [isAuthLoading, user?.id]);
 
   const handleMarkAsRead = async (id: string) => {
     await notificationService.markAsRead(id);
-    setNotifications(prev => 
+    setNotifications(prev =>
       prev.map(n => n.id === id ? { ...n, isRead: true } : n)
     );
   };
 
-  const filteredNotifs = filter === 'Semua' 
-    ? notifications 
+  const filteredNotifs = filter === 'semua'
+    ? notifications
     : notifications.filter(n => n.category === filter);
 
   const getIcon = (type: string) => {
@@ -48,13 +59,13 @@ export default function NotificationPage() {
       case 'info': return <Info className="w-5 h-5 text-info" />;
       case 'warning': return <AlertTriangle className="w-5 h-5 text-warning" />;
       case 'success': return <CheckCircle className="w-5 h-5 text-success" />;
-      case 'danger': return <AlertTriangle className="w-5 h-5 text-danger" />;
+      case 'error': return <AlertTriangle className="w-5 h-5 text-danger" />;
       default: return <Bell className="w-5 h-5 text-slate-500" />;
     }
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 pt-20">
+    <div className="flex min-h-screen flex-col bg-slate-50 pt-16 sm:pt-20">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -66,14 +77,14 @@ export default function NotificationPage() {
         <Card className="mb-6">
           <CardContent className="p-0 border-b border-slate-100 overflow-x-auto">
             <div className="flex p-2 gap-2 min-w-max">
-              {['Semua', 'Transaksi', 'Pertanian', 'Cuaca', 'Subsidi', 'Edukasi', 'Sistem'].map(cat => (
-                <Button 
-                  key={cat}
-                  variant={filter === cat ? 'primary' : 'ghost'}
-                  onClick={() => setFilter(cat)}
-                  className={`rounded-full px-4 h-9 ${filter === cat ? 'bg-primary-600 text-white hover:bg-primary-700' : 'text-slate-600'}`}
+              {notificationFilters.map(cat => (
+                <Button
+                  key={cat.value}
+                  variant={filter === cat.value ? 'primary' : 'ghost'}
+                  onClick={() => setFilter(cat.value)}
+                  className={`rounded-full px-4 h-9 ${filter === cat.value ? 'bg-primary-600 text-white hover:bg-primary-700' : 'text-slate-600'}`}
                 >
-                  {cat}
+                  {cat.label}
                 </Button>
               ))}
             </div>
@@ -99,8 +110,8 @@ export default function NotificationPage() {
           <div className="space-y-4">
             {filteredNotifs.length > 0 ? (
               filteredNotifs.map((notif) => (
-                <Card 
-                  key={notif.id} 
+                <Card
+                  key={notif.id}
                   className={`transition-colors ${notif.isRead ? 'bg-white' : 'bg-primary-50 border-primary-200'}`}
                 >
                   <CardContent className="p-4 sm:p-6 flex gap-4">
@@ -109,7 +120,7 @@ export default function NotificationPage() {
                         {getIcon(notif.type)}
                       </div>
                     </div>
-                    
+
                     <div className="flex-1">
                       <div className="flex justify-between items-start mb-1">
                         <h3 className={`font-bold ${notif.isRead ? 'text-slate-700' : 'text-slate-900'}`}>
@@ -122,16 +133,16 @@ export default function NotificationPage() {
                       <p className={`text-sm mb-3 ${notif.isRead ? 'text-slate-500' : 'text-slate-700'}`}>
                         {notif.message}
                       </p>
-                      
+
                       <div className="flex justify-between items-center">
                         <Badge variant="outline" className="text-xs bg-white text-slate-500 capitalize">
                           {notif.category}
                         </Badge>
-                        
+
                         {!notif.isRead && (
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => handleMarkAsRead(notif.id)}
                             className="h-8 text-primary-600 hover:text-primary-800 hover:bg-primary-50 px-2"
                           >

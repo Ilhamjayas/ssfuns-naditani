@@ -43,12 +43,12 @@ export const NAVIGATION_ITEMS: Record<UserRole, { label: string; href: string; i
 };
 
 export const DEMO_CREDENTIALS = [
-  { role: 'petani' as UserRole, email: 'petani@naditani.id', password: 'password123', name: 'Budi Santoso' },
-  { role: 'operator_atm' as UserRole, email: 'operator@naditani.id', password: 'password123', name: 'Agus Pratama' },
-  { role: 'pengelola_dai' as UserRole, email: 'dai@naditani.id', password: 'password123', name: 'Bambang Widjaja' },
-  { role: 'pemerintah' as UserRole, email: 'gov@naditani.id', password: 'password123', name: 'Dinas Pertanian Jatim' },
-  { role: 'mitra' as UserRole, email: 'mitra@naditani.id', password: 'password123', name: 'PT Beras Makmur' },
-  { role: 'admin' as UserRole, email: 'admin@naditani.id', password: 'password123', name: 'System Admin' },
+  { role: 'petani' as UserRole, username: 'petani', email: 'petani@naditani.id', password: 'password123', name: 'Budi Santoso' },
+  { role: 'operator_atm' as UserRole, username: 'operator', email: 'operator@naditani.id', password: 'password123', name: 'Agus Pratama' },
+  { role: 'pengelola_dai' as UserRole, username: 'dai', email: 'dai@naditani.id', password: 'password123', name: 'Bambang Widjaja' },
+  { role: 'pemerintah' as UserRole, username: 'pemerintah', email: 'gov@naditani.id', password: 'password123', name: 'Dinas Pertanian Jatim' },
+  { role: 'mitra' as UserRole, username: 'mitra', email: 'mitra@naditani.id', password: 'password123', name: 'PT Beras Makmur' },
+  { role: 'admin' as UserRole, username: 'admin', email: 'admin@naditani.id', password: 'password123', name: 'System Admin' },
 ];
 
 export const QUALITY_GRADES = [

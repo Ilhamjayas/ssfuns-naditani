@@ -7,7 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 const DaiMap = dynamic(() => import("./DaiMap"), {
   ssr: false,
   loading: () => (
-    <div className="w-full h-[500px] rounded-xl overflow-hidden border border-border shadow-sm bg-slate-50 flex items-center justify-center">
+    <div className="flex h-full min-h-[320px] w-full items-center justify-center overflow-hidden rounded-xl border border-border bg-slate-50 shadow-sm">
       <div className="text-center space-y-4">
         <Skeleton className="w-16 h-16 rounded-full mx-auto" />
         <Skeleton className="h-4 w-32 mx-auto" />

@@ -33,7 +33,7 @@ export default function InsightPage() {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, []);
 
@@ -53,12 +53,12 @@ export default function InsightPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 pt-20">
+    <div className="flex min-h-screen flex-col bg-slate-50 pt-16 sm:pt-20">
       {/* Header Section */}
-      <div className="bg-primary-900 relative overflow-hidden text-white py-20 px-4 lg:px-8 mb-12">
+      <div className="relative mb-8 overflow-hidden bg-primary-900 px-4 py-12 text-white sm:mb-12 sm:py-16 lg:px-8 lg:py-20">
         <div className="absolute inset-0 bg-gradient-to-tr from-primary-900 to-green-900 z-0 opacity-90"></div>
         <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 z-0 mix-blend-overlay"></div>
-        <motion.div 
+        <motion.div
           className="container mx-auto max-w-6xl text-center relative z-10"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -74,9 +74,9 @@ export default function InsightPage() {
         </motion.div>
       </div>
 
-      <div className="container mx-auto px-4 lg:px-8 pb-20 max-w-6xl">
+      <div className="container mx-auto max-w-6xl px-4 pb-12 sm:pb-20 lg:px-8">
         {/* National Stats Grid */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
@@ -86,13 +86,13 @@ export default function InsightPage() {
           <h2 className="text-3xl font-extrabold text-slate-800">Ringkasan Nasional</h2>
           <div className="h-1 w-12 bg-primary-500 mt-4 rounded-full"></div>
         </motion.div>
-        
+
         {loading || !stats ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
             {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-40 rounded-3xl" />)}
           </div>
         ) : (
-          <motion.div 
+          <motion.div
             className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16"
             variants={containerVariants}
             initial="hidden"
@@ -125,7 +125,7 @@ export default function InsightPage() {
         )}
 
         {/* NTP Chart Section */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: -20 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
@@ -157,7 +157,7 @@ export default function InsightPage() {
                   <NtpChart historicalData={ntpData} projectionData={projectionData} />
                 </div>
               )}
-              
+
               <div className="mt-8 bg-blue-50 p-6 rounded-2xl border border-blue-100 text-sm text-slate-700 shadow-inner">
                 <p className="mb-3 font-bold text-blue-900 text-base">Catatan Proyeksi:</p>
                 <ul className="list-disc pl-5 space-y-2 text-blue-800/80">

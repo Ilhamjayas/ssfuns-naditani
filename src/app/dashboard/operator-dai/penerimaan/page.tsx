@@ -4,30 +4,36 @@ import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { transactionService } from '@/lib/services/transaction.service';
-import { DepositTransaction } from '@/lib/types';
-import { CheckCircle2, XCircle, Clock } from 'lucide-react';
+import { DepositTransaction, PickupSchedule } from '@/lib/types';
+import { CalendarDays, CheckCircle2, MapPin, Truck } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
+import { scheduleService } from '@/lib/services/schedule.service';
+import { useAuth } from '@/lib/auth/AuthContext';
 
 export default function PenerimaanPage() {
+  const { user } = useAuth();
   const [transactions, setTransactions] = useState<DepositTransaction[]>([]);
+  const [schedules, setSchedules] = useState<PickupSchedule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function loadData() {
       try {
-        const data = await transactionService.getTransactions();
-        // Mock filtering for ones that need operator attention, 
-        // e.g., anything that is pending or we just show all for demo
+        const [data, scheduleData] = await Promise.all([
+          transactionService.getTransactions(),
+          scheduleService.getSchedules(),
+        ]);
         setTransactions(data);
+        setSchedules(scheduleData);
       } catch (error) {
         console.error('Failed to load transactions:', error);
       } finally {
         setIsLoading(false);
       }
     }
-    
+
     loadData();
   }, []);
 
@@ -82,14 +88,30 @@ export default function PenerimaanPage() {
     }).format(amount);
   };
 
-  const handleVerifikasi = (id: string) => {
-    setTransactions(transactions.map(t => t.id === id ? { ...t, status: 'selesai' as const } : t));
-    toast.success("Verifikasi berhasil disimpan");
+  const handleVerifikasi = async (id: string) => {
+    const verified = await transactionService.verifyTransaction(id, user?.id);
+    if (!verified) {
+      toast.error('Transaksi tidak ditemukan');
+      return;
+    }
+    setTransactions(current => current.map(transaction => transaction.id === id ? verified : transaction));
+    toast.success('Verifikasi tersimpan. Dompet petani dan stok DAI telah diperbarui');
   };
 
-  const handleTolak = (id: string) => {
-    setTransactions(transactions.filter(t => t.id !== id));
-    toast.error("Transaksi ditolak dan dihapus dari daftar");
+  const handleTolak = async (id: string) => {
+    const rejected = await transactionService.rejectTransaction(id, user?.id);
+    if (rejected) {
+      setTransactions(current => current.map(transaction => transaction.id === id ? rejected : transaction));
+      toast.error('Transaksi ditolak dan statusnya tersimpan');
+    }
+  };
+
+  const handleConfirmSchedule = async (id: string) => {
+    const updated = await scheduleService.updateStatus(id, 'confirmed');
+    if (updated) {
+      setSchedules(current => current.map(schedule => schedule.id === id ? updated : schedule));
+      toast.success('Jadwal telah dikonfirmasi dan dapat dilihat oleh petani');
+    }
   };
 
   return (
@@ -98,7 +120,49 @@ export default function PenerimaanPage() {
         <h1 className="text-2xl font-bold text-hijau-tua">Penerimaan Gabah</h1>
         <p className="text-gray-500 mt-1">Daftar transaksi masuk yang memerlukan verifikasi dari ATM Gabah Mandiri.</p>
       </motion.div>
-      
+
+      <Card className="overflow-hidden border-emerald-100">
+        <CardHeader className="border-b border-emerald-100 bg-emerald-50/60">
+          <CardTitle className="flex items-center gap-2 text-lg text-slate-800">
+            <CalendarDays className="h-5 w-5 text-emerald-700" /> Permintaan Jadwal Setoran
+          </CardTitle>
+          <CardDescription>Jadwal dari akun petani masuk ke sini untuk dikonfirmasi operator DAI.</CardDescription>
+        </CardHeader>
+        <CardContent className="p-4">
+          {schedules.length === 0 ? (
+            <p className="py-4 text-center text-sm text-slate-500">Belum ada permintaan jadwal.</p>
+          ) : (
+            <div className="grid gap-3 lg:grid-cols-2">
+              {schedules.slice(0, 4).map(schedule => (
+                <div key={schedule.id} className="rounded-xl border border-slate-200 bg-white p-4">
+                  <div className="flex flex-col items-start justify-between gap-2 min-[400px]:flex-row min-[400px]:gap-3">
+                    <div className="min-w-0">
+                      <p className="break-all text-xs font-bold uppercase tracking-wide text-emerald-700">{schedule.id}</p>
+                      <p className="mt-1 font-semibold text-slate-800">
+                        {new Date(schedule.scheduledDate).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </p>
+                    </div>
+                    <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${schedule.status === 'confirmed' ? 'bg-emerald-100 text-emerald-700' : schedule.status === 'cancelled' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                      {schedule.status === 'confirmed' ? 'Dikonfirmasi' : schedule.status === 'cancelled' ? 'Dibatalkan' : schedule.status === 'completed' ? 'Selesai' : 'Menunggu'}
+                    </span>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-xs text-slate-600">
+                    <span className="inline-flex items-center gap-1.5"><Truck className="h-3.5 w-3.5" />{schedule.method === 'jemput' ? 'Penjemputan' : 'Antar mandiri'}</span>
+                    <span className="font-semibold">{schedule.estimatedWeight.toLocaleString('id-ID')} kg</span>
+                  </div>
+                  <p className="mt-2 flex items-start gap-1.5 text-xs text-slate-500"><MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0" />{schedule.pickupLocation || 'Lokasi sedang dikonfirmasi'}</p>
+                  {schedule.status === 'pending' && (
+                    <Button onClick={() => void handleConfirmSchedule(schedule.id)} size="sm" className="mt-4 w-full bg-emerald-700 hover:bg-emerald-800">
+                      <CheckCircle2 className="mr-2 h-4 w-4" /> Konfirmasi Jadwal
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
       <div className="grid grid-cols-1 gap-4">
         {transactions.length === 0 ? (
           <Card className="border-dashed">
@@ -118,8 +182,8 @@ export default function PenerimaanPage() {
                 <CardContent className="p-0">
                   <div className="flex flex-col md:flex-row">
                     <div className="p-5 md:p-6 w-full md:w-2/3">
-                      <div className="flex items-center gap-3 mb-3">
-                        <span className="font-bold text-lg text-slate-900">{trx.id}</span>
+                      <div className="mb-3 flex flex-wrap items-center gap-2 sm:gap-3">
+                        <span className="break-all text-base font-bold text-slate-900 sm:text-lg">{trx.id}</span>
                         <span className={`text-xs px-2.5 py-0.5 rounded-full font-medium ${
                           trx.status === 'selesai' ? 'bg-green-100 text-green-700 border border-green-200' :
                           trx.status === 'menunggu_pembayaran' ? 'bg-yellow-100 text-yellow-700 border border-yellow-200' :
@@ -128,15 +192,15 @@ export default function PenerimaanPage() {
                           {trx.status.replace('_', ' ').toUpperCase()}
                         </span>
                       </div>
-                      
+
                       <div className="space-y-1 mb-5">
                         <p className="text-sm text-slate-500 flex items-center gap-2">
                           <span className="w-16">ID Petani</span>
                           <span className="font-medium text-slate-700">{trx.farmerId}</span>
                         </p>
-                        <p className="text-sm text-slate-500 flex items-center gap-2">
-                          <span className="w-16">Tanggal</span>
-                          <span className="text-slate-700">
+                        <p className="flex items-start gap-2 text-sm text-slate-500">
+                          <span className="w-16 shrink-0">Tanggal</span>
+                          <span className="min-w-0 text-slate-700">
                             {new Date(trx.date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </p>
@@ -161,19 +225,19 @@ export default function PenerimaanPage() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="p-5 md:p-6 w-full md:w-1/3 flex flex-col justify-between items-start md:items-end bg-slate-50/50 md:bg-transparent border-t md:border-t-0 md:border-l border-slate-100">
                       <div className="text-left md:text-right mb-5 w-full">
                         <p className="text-sm text-slate-500 mb-1">Nilai Transaksi</p>
-                        <p className="text-2xl font-bold text-emas-padi">{formatCurrency(trx.nilai_transaksi)}</p>
+                        <p className="break-words text-xl font-bold text-emas-padi sm:text-2xl">{formatCurrency(trx.nilai_transaksi)}</p>
                       </div>
-                      
+
                       <div className="flex gap-2 w-full md:w-auto">
-                        <Button onClick={() => handleTolak(trx.id)} variant="outline" className="flex-1 md:flex-none border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700">
+                        <Button onClick={() => void handleTolak(trx.id)} disabled={trx.status === 'selesai' || trx.status === 'dibatalkan'} variant="outline" className="flex-1 md:flex-none border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700">
                           Tolak
                         </Button>
-                        <Button onClick={() => handleVerifikasi(trx.id)} className="flex-1 md:flex-none bg-hijau-pertanian hover:bg-hijau-tua">
-                          Verifikasi
+                        <Button onClick={() => void handleVerifikasi(trx.id)} disabled={trx.status === 'selesai' || trx.status === 'dibatalkan'} className="flex-1 md:flex-none bg-hijau-pertanian hover:bg-hijau-tua">
+                          {trx.status === 'selesai' ? 'Terverifikasi' : trx.status === 'dibatalkan' ? 'Ditolak' : 'Verifikasi'}
                         </Button>
                       </div>
                     </div>

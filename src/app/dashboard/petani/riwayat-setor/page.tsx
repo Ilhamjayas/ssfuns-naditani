@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { transactionService } from '@/lib/services/transaction.service';
@@ -8,25 +8,36 @@ import { DepositTransaction } from '@/lib/types';
 import { formatRupiah } from '@/lib/utils/format';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
+import { useAuth } from '@/lib/auth/AuthContext';
+import { DEMO_UPDATE_EVENT } from '@/lib/demo/demo-store';
 
 export default function RiwayatSetorPage() {
+  const { user } = useAuth();
   const [transactions, setTransactions] = useState<DepositTransaction[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchTransactions = async () => {
+  const fetchTransactions = useCallback(async () => {
       try {
-        const data = await transactionService.getTransactions('PTN-240017');
+        const data = await transactionService.getTransactions(user?.id || 'PTN-240017');
         setTransactions(data);
       } catch (error) {
         console.error('Error fetching transactions:', error);
       } finally {
         setLoading(false);
       }
-    };
+  }, [user]);
 
-    fetchTransactions();
-  }, []);
+  useEffect(() => {
+    const initialLoad = window.setTimeout(() => void fetchTransactions(), 0);
+    const refresh = () => void fetchTransactions();
+    window.addEventListener(DEMO_UPDATE_EVENT, refresh);
+    window.addEventListener('focus', refresh);
+    return () => {
+      window.clearTimeout(initialLoad);
+      window.removeEventListener(DEMO_UPDATE_EVENT, refresh);
+      window.removeEventListener('focus', refresh);
+    };
+  }, [fetchTransactions]);
 
   return (
     <div className="space-y-6">
@@ -91,12 +102,12 @@ export default function RiwayatSetorPage() {
                     </div>
                     <div className="flex-1 min-w-[80px]">
                       <p className="text-xs text-slate-500 mb-1">Grade</p>
-                      <p className="text-sm font-semibold text-slate-700">{trx.grade || '-'}</p>
+                      <p className="text-sm font-semibold text-slate-700">{trx.kadar_air > 0 ? trx.grade : 'Menunggu pemeriksaan'}</p>
                     </div>
                     <div className="flex-1 min-w-[120px] text-right">
                       <p className="text-xs text-slate-500 mb-1">Nilai Transaksi</p>
                       <p className="text-sm font-bold text-emasPadi">
-                        {trx.nilai_transaksi > 0 ? formatRupiah(trx.nilai_transaksi) : '-'}
+                        {trx.nilai_transaksi > 0 ? formatRupiah(trx.nilai_transaksi) : 'Belum dihitung'}
                       </p>
                     </div>
                   </div>

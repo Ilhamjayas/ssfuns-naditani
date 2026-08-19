@@ -62,11 +62,11 @@ export default function EkosistemPage() {
   ];
 
   return (
-    <div className="flex flex-col min-h-screen bg-slate-50 pt-20">
+    <div className="flex min-h-screen flex-col bg-slate-50 pt-16 sm:pt-20">
       <div className="absolute top-0 left-0 right-0 h-96 bg-primary-900 z-0 opacity-5"></div>
-      
-      <div className="container mx-auto px-4 lg:px-8 py-20 relative z-10">
-        <motion.div 
+
+      <div className="container relative z-10 mx-auto px-4 py-10 sm:py-16 lg:px-8 lg:py-20">
+        <motion.div
           className="max-w-4xl mx-auto text-center mb-20"
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -83,9 +83,9 @@ export default function EkosistemPage() {
           <div className="hidden md:block absolute left-12 top-10 bottom-10 w-2 bg-gradient-to-b from-primary-200 via-info to-success rounded-full opacity-30"></div>
 
           {steps.map((step, index) => (
-            <motion.div 
-              key={step.id} 
-              className={`card p-8 md:p-10 mb-12 relative border-l-8 ${step.border} bg-white shadow-xl hover:shadow-2xl transition-all duration-300 rounded-3xl ml-0 md:ml-20`}
+            <motion.div
+              key={step.id}
+              className={`card relative mb-8 ml-0 rounded-2xl border-l-4 bg-white p-5 shadow-xl transition-all duration-300 hover:shadow-2xl sm:p-8 md:mb-12 md:ml-20 md:rounded-3xl md:border-l-8 md:p-10 ${step.border}`}
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true, margin: "-100px" }}
@@ -101,7 +101,7 @@ export default function EkosistemPage() {
                 <div className={`md:hidden w-16 h-16 rounded-2xl ${step.bg} flex items-center justify-center ${step.text} flex-shrink-0 mb-4`}>
                   {step.icon}
                 </div>
-                
+
                 <div className="flex-1">
                   <div className="flex items-center gap-4 mb-4">
                     <span className={`text-4xl font-black opacity-20 ${step.text}`}>0{step.id}</span>
@@ -110,7 +110,7 @@ export default function EkosistemPage() {
                   <p className="text-lg text-slate-600 mb-6 leading-relaxed">
                     {step.desc}
                   </p>
-                  
+
                   {step.link && (
                     <Link href={step.link.href} className={`inline-flex items-center px-6 py-3 rounded-xl font-bold transition-all ${step.bg} ${step.text} hover:opacity-80`}>
                       {step.link.text} <ArrowRight className="ml-2 w-5 h-5" />

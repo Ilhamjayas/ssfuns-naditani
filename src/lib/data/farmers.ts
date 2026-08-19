@@ -9,7 +9,7 @@ export const mockFarmers: FarmerProfile[] = [
     luas_lahan: 1.8,
     komoditas: 'Padi',
     varietas: 'Inpari 32',
-    estimasi_panen: '2026-08-15T00:00:00.000Z',
+    estimasi_panen: '2026-08-25T00:00:00.000Z',
     dai_terdekat: 'DAI-NGW-01',
     kelompok_tani: 'Tani Makmur Sejahtera',
   },

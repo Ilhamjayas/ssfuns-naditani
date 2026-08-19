@@ -72,21 +72,21 @@ export function NtpChart({ historicalData, projectionData = [], height = 400 }: 
 
 
   return (
-    <div style={{ width: "100%", height }}>
+    <div className={height === 400 ? 'h-[300px] w-full sm:h-[400px]' : 'w-full'} style={height === 400 ? undefined : { height }}>
       <ResponsiveContainer>
         <LineChart
           data={combinedData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+          margin={{ top: 16, right: 10, left: 0, bottom: 16 }}
         >
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-          <XAxis 
-            dataKey="displayDate" 
+          <XAxis
+            dataKey="displayDate"
             tick={{ fontSize: 12, fill: '#64748b' }}
             tickMargin={10}
             minTickGap={30}
           />
-          <YAxis 
-            domain={['auto', 'auto']} 
+          <YAxis
+            domain={['auto', 'auto']}
             tick={{ fontSize: 12, fill: '#64748b' }}
             tickMargin={10}
             axisLine={false}
@@ -94,14 +94,14 @@ export function NtpChart({ historicalData, projectionData = [], height = 400 }: 
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend wrapperStyle={{ paddingTop: '20px' }} />
-          
+
           {/* Highlight projection area */}
           {projectionStartIndex !== -1 && (
-            <ReferenceArea 
-              x1={combinedData[projectionStartIndex].displayDate} 
-              x2={combinedData[combinedData.length - 1].displayDate} 
-              fill="#fef3c7" 
-              fillOpacity={0.3} 
+            <ReferenceArea
+              x1={combinedData[projectionStartIndex].displayDate}
+              x2={combinedData[combinedData.length - 1].displayDate}
+              fill="#fef3c7"
+              fillOpacity={0.3}
             />
           )}
 
@@ -114,7 +114,7 @@ export function NtpChart({ historicalData, projectionData = [], height = 400 }: 
             dot={{ r: 4, fill: "#059669", strokeWidth: 2, stroke: "#fff" }}
             activeDot={{ r: 6, strokeWidth: 0 }}
           />
-          
+
           <Line
             type="monotone"
             name="NTUP"
