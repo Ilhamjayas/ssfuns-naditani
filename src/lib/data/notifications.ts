@@ -21,7 +21,7 @@ export const mockNotifications: Notification[] = [
     category: 'cuaca',
     isRead: false,
     createdAt: '2026-07-20T07:00:00.000Z',
-    link: '/dashboard/petani/cuaca'
+    link: '/notifikasi?filter=cuaca'
   },
   {
     id: 'NOTIF-2026-003',
@@ -32,7 +32,7 @@ export const mockNotifications: Notification[] = [
     category: 'subsidi',
     isRead: true,
     createdAt: '2026-07-15T09:00:00.000Z',
-    link: '/dashboard/petani/subsidi'
+    link: '/notifikasi?filter=subsidi'
   },
   {
     id: 'NOTIF-2026-004',
@@ -54,6 +54,6 @@ export const mockNotifications: Notification[] = [
     category: 'edukasi',
     isRead: true,
     createdAt: '2026-07-01T14:00:00.000Z',
-    link: '/dashboard/petani/edukasi'
+    link: '/edukasi'
   }
 ];

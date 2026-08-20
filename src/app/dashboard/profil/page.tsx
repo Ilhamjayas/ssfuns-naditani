@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import { useAuth } from '@/lib/auth/AuthContext';
 import { toast } from 'sonner';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -19,6 +20,8 @@ const fadeIn = {
 
 export default function ProfilPage() {
   const { user } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatarUrl, setAvatarUrl] = useState('');
 
   // Form State: Informasi Pribadi
   const [personalInfo, setPersonalInfo] = useState({
@@ -77,6 +80,7 @@ export default function ProfilPage() {
         } : undefined,
       };
       const saved = profileService.getProfile(user.id);
+      setAvatarUrl(saved?.avatarUrl || '');
       setPersonalInfo(saved?.personal || defaults.personal);
 
       if (saved?.farm || defaults.farm) setFarmInfo(saved?.farm || defaults.farm!);
@@ -84,6 +88,14 @@ export default function ProfilPage() {
     }, 0);
     return () => window.clearTimeout(initializeProfile);
   }, [user]);
+
+  const profileCompleteness = (() => {
+    const values = [...Object.values(personalInfo), avatarUrl];
+    if (user?.role === 'petani') values.push(...Object.values(farmInfo), ...Object.values(bankInfo));
+    if (user?.role === 'mitra') values.push(...Object.values(bankInfo));
+    const filled = values.filter(value => String(value).trim().length > 0).length;
+    return values.length > 0 ? Math.round((filled / values.length) * 100) : 0;
+  })();
 
   const getInitials = (name: string) => {
     return name
@@ -116,20 +128,43 @@ export default function ProfilPage() {
 
   const handleSavePersonalInfo = (e: React.FormEvent) => {
     e.preventDefault();
-    profileService.saveProfile(user!.id, { personal: personalInfo, farm: farmInfo, bank: bankInfo });
+    profileService.saveProfile(user!.id, { avatarUrl, personal: personalInfo, farm: farmInfo, bank: bankInfo });
     toast.success('Informasi pribadi tersimpan pada data demo');
   };
 
   const handleSaveFarmInfo = (e: React.FormEvent) => {
     e.preventDefault();
-    profileService.saveProfile(user!.id, { personal: personalInfo, farm: farmInfo, bank: bankInfo });
+    profileService.saveProfile(user!.id, { avatarUrl, personal: personalInfo, farm: farmInfo, bank: bankInfo });
     toast.success('Informasi pertanian tersimpan pada data demo');
   };
 
   const handleSaveBankInfo = (e: React.FormEvent) => {
     e.preventDefault();
-    profileService.saveProfile(user!.id, { personal: personalInfo, farm: farmInfo, bank: bankInfo });
+    profileService.saveProfile(user!.id, { avatarUrl, personal: personalInfo, farm: farmInfo, bank: bankInfo });
     toast.success('Informasi rekening tersimpan pada data demo');
+  };
+
+  const handleAvatarUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      toast.error('File foto harus berupa gambar');
+      return;
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('Ukuran foto maksimal 2 MB');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const nextAvatar = typeof reader.result === 'string' ? reader.result : '';
+      if (!nextAvatar) return;
+      setAvatarUrl(nextAvatar);
+      profileService.saveProfile(user!.id, { avatarUrl: nextAvatar, personal: personalInfo, farm: farmInfo, bank: bankInfo });
+      toast.success('Foto profil berhasil diperbarui');
+    };
+    reader.readAsDataURL(file);
+    event.target.value = '';
   };
 
   const handleSaveSecurityInfo = async (e: React.FormEvent) => {
@@ -171,8 +206,9 @@ export default function ProfilPage() {
           <CardContent className="relative flex flex-col items-center gap-4 p-4 pb-6 pt-0 sm:gap-6 sm:p-6 sm:pb-8 sm:pt-0 md:flex-row md:items-end">
             <div className="relative -mt-12 rounded-full bg-white p-1.5 shadow-md sm:-mt-16">
               <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-4 border-white bg-primary-100 text-2xl font-bold text-primary-700 shadow-inner sm:h-28 sm:w-28 sm:text-3xl">
-                {getInitials(user.name)}
-                <button className="absolute bottom-0 w-full bg-black/40 text-white text-xs py-1.5 flex justify-center items-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
+                {avatarUrl ? <Image src={avatarUrl} alt={`Foto profil ${user.name}`} fill unoptimized className="object-cover" sizes="112px" /> : getInitials(user.name)}
+                <input ref={fileInputRef} type="file" accept="image/png,image/jpeg,image/webp" onChange={handleAvatarUpload} className="sr-only" />
+                <button type="button" aria-label="Ubah foto profil" onClick={() => fileInputRef.current?.click()} className="absolute bottom-0 z-10 flex w-full cursor-pointer items-center justify-center bg-black/55 py-1.5 text-xs text-white opacity-100 transition-opacity sm:opacity-0 sm:hover:opacity-100">
                   <Camera className="w-4 h-4" />
                 </button>
               </div>
@@ -187,8 +223,8 @@ export default function ProfilPage() {
               </p>
             </div>
             <div className="w-full rounded-2xl border border-emerald-100 bg-emerald-50 p-4 md:w-56">
-              <div className="flex items-center justify-between text-xs font-semibold text-emerald-800"><span>Kelengkapan profil</span><span>85%</span></div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-emerald-100"><div className="h-full w-[85%] rounded-full bg-emerald-600" /></div>
+              <div className="flex items-center justify-between text-xs font-semibold text-emerald-800"><span>Kelengkapan profil</span><span>{profileCompleteness}%</span></div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-emerald-100"><div className="h-full rounded-full bg-emerald-600 transition-all" style={{ width: `${profileCompleteness}%` }} /></div>
               <p className="mt-2 text-[11px] leading-relaxed text-emerald-700">Lengkapi data untuk mempercepat layanan DAI.</p>
             </div>
           </CardContent>

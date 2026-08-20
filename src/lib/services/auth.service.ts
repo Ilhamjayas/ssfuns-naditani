@@ -1,10 +1,14 @@
 import { User, UserRole } from '../types';
 import { DEMO_CREDENTIALS } from '../utils/constants';
+import { updateDemoState } from '../demo/demo-store';
 
 // Simulated delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 const REGISTERED_ACCOUNTS_KEY = 'nadi_registered_accounts';
 const PASSWORD_OVERRIDES_KEY = 'nadi_password_overrides';
+const DEMO_ACCOUNT_STATUS_KEY = 'nadi_demo_account_status';
+
+export type AccountVerificationStatus = 'pending' | 'approved' | 'rejected';
 
 export interface RegisterInput {
   name: string;
@@ -18,6 +22,7 @@ interface RegisteredAccount extends RegisterInput {
   id: string;
   createdAt: string;
   isActive?: boolean;
+  verificationStatus?: AccountVerificationStatus;
 }
 
 export interface RegisteredAccountSummary {
@@ -28,6 +33,7 @@ export interface RegisteredAccountSummary {
   role: UserRole;
   createdAt: string;
   isActive: boolean;
+  verificationStatus: AccountVerificationStatus;
 }
 
 function getRegisteredAccounts(): RegisteredAccount[] {
@@ -62,6 +68,15 @@ function getPasswordOverrides(): Record<string, string> {
   }
 }
 
+function getDemoAccountStatus(): Record<string, boolean> {
+  if (typeof window === 'undefined') return {};
+  try {
+    return JSON.parse(localStorage.getItem(DEMO_ACCOUNT_STATUS_KEY) || '{}') as Record<string, boolean>;
+  } catch {
+    return {};
+  }
+}
+
 export const authService = {
   async login(identifier: string, password: string): Promise<User> {
     await delay(500);
@@ -82,8 +97,21 @@ export const authService = {
     if (!account) {
       throw new Error('Username, email, atau kata sandi tidak sesuai');
     }
+    const verificationStatus = registeredAccount?.verificationStatus || 'approved';
+    if (registeredAccount && verificationStatus === 'pending') {
+      throw new Error('Pendaftaran Anda masih menunggu verifikasi administrator');
+    }
+    if (registeredAccount && verificationStatus === 'rejected') {
+      throw new Error('Pendaftaran perlu diperbaiki. Hubungi administrator NADI-TANI');
+    }
     if (registeredAccount?.isActive === false) {
       throw new Error('Akun ini sedang dinonaktifkan. Hubungi admin NADI-TANI');
+    }
+    if (demoAccount) {
+      const demoUserId = `user-${demoAccount.role}-1`;
+      if (getDemoAccountStatus()[demoUserId] === false) {
+        throw new Error('Akun demo ini sedang dinonaktifkan oleh administrator');
+      }
     }
 
     const user: User = {
@@ -101,6 +129,9 @@ export const authService = {
 
   async register(input: RegisterInput): Promise<User> {
     await delay(650);
+    if (!['petani', 'mitra'].includes(input.role)) {
+      throw new Error('Pendaftaran mandiri hanya tersedia untuk Petani dan Mitra Industri');
+    }
     const accounts = getRegisteredAccounts();
     const normalizedUsername = input.username.trim().toLowerCase();
     const normalizedEmail = input.email.trim().toLowerCase();
@@ -116,7 +147,8 @@ export const authService = {
       name: input.name.trim(),
       username: normalizedUsername,
       email: normalizedEmail,
-      isActive: true,
+      isActive: false,
+      verificationStatus: 'pending',
       createdAt: new Date().toISOString(),
     };
     saveRegisteredAccounts([...accounts, newAccount]);
@@ -129,7 +161,6 @@ export const authService = {
       role: newAccount.role,
       createdAt: newAccount.createdAt,
     };
-    saveSession(user);
     return user;
   },
 
@@ -141,7 +172,7 @@ export const authService = {
   },
 
   getRegisteredAccountSummaries(): RegisteredAccountSummary[] {
-    return getRegisteredAccounts().map(({ id, name, username, email, role, createdAt, isActive }) => ({
+    return getRegisteredAccounts().map(({ id, name, username, email, role, createdAt, isActive, verificationStatus }) => ({
       id,
       name,
       username,
@@ -149,18 +180,81 @@ export const authService = {
       role,
       createdAt,
       isActive: isActive !== false,
+      verificationStatus: verificationStatus || 'approved',
     }));
   },
 
-  setRegisteredAccountActive(id: string, isActive: boolean): void {
+  setAccountActive(id: string, isActive: boolean): void {
     const accounts = getRegisteredAccounts();
     const account = accounts.find(item => item.id === id);
-    if (!account) throw new Error('Akun terdaftar tidak ditemukan');
-    account.isActive = isActive;
-    saveRegisteredAccounts(accounts);
+    if (account) {
+      if (isActive && (account.verificationStatus || 'approved') !== 'approved') {
+        throw new Error('Akun harus diverifikasi sebelum dapat diaktifkan');
+      }
+      account.isActive = isActive;
+      saveRegisteredAccounts(accounts);
+    } else {
+      const demoExists = DEMO_CREDENTIALS.some(item => `user-${item.role}-1` === id);
+      if (!demoExists) throw new Error('Akun tidak ditemukan');
+      localStorage.setItem(DEMO_ACCOUNT_STATUS_KEY, JSON.stringify({ ...getDemoAccountStatus(), [id]: isActive }));
+    }
 
     const currentUser = this.getCurrentUser();
     if (!isActive && currentUser?.id === id) localStorage.removeItem('nadi_user');
+    updateDemoState(state => {
+      state.auditLogs.unshift({
+        id: `AUD-ACCOUNT-${Date.now()}`,
+        userId: currentUser?.id || 'system',
+        action: isActive ? 'ACTIVATE_ACCOUNT' : 'DEACTIVATE_ACCOUNT',
+        entityType: 'UserAccount',
+        entityId: id,
+        details: `Akun ${id} ${isActive ? 'diaktifkan' : 'dinonaktifkan'}`,
+        timestamp: new Date().toISOString(),
+      });
+    });
+  },
+
+  isAccountActive(id: string): boolean {
+    const account = getRegisteredAccounts().find(item => item.id === id);
+    if (account) return account.isActive !== false;
+    return getDemoAccountStatus()[id] !== false;
+  },
+
+  setRegisteredAccountVerification(id: string, status: AccountVerificationStatus): void {
+    const accounts = getRegisteredAccounts();
+    const account = accounts.find(item => item.id === id);
+    if (!account) throw new Error('Akun pendaftar tidak ditemukan');
+    account.verificationStatus = status;
+    account.isActive = status === 'approved';
+    saveRegisteredAccounts(accounts);
+    const currentUser = this.getCurrentUser();
+    updateDemoState(state => {
+      const timestamp = new Date().toISOString();
+      state.auditLogs.unshift({
+        id: `AUD-VERIFY-${Date.now()}`,
+        userId: currentUser?.id || 'system',
+        action: status === 'approved' ? 'APPROVE_ACCOUNT' : 'REJECT_ACCOUNT',
+        entityType: 'UserAccount',
+        entityId: id,
+        details: `Pendaftaran ${account.name} ${status === 'approved' ? 'disetujui' : 'dikembalikan untuk diperbaiki'}`,
+        timestamp,
+      });
+      state.notifications.unshift({
+        id: `NOTIF-VERIFY-${Date.now()}`,
+        userId: id,
+        title: status === 'approved' ? 'Akun Telah Diverifikasi' : 'Pendaftaran Perlu Diperbaiki',
+        message: status === 'approved'
+          ? 'Akun NADI-TANI Anda sudah aktif dan siap digunakan.'
+          : 'Pendaftaran Anda belum dapat disetujui. Silakan hubungi administrator untuk memperbarui data.',
+        type: status === 'approved' ? 'success' : 'warning',
+        category: 'sistem',
+        isRead: false,
+        createdAt: timestamp,
+        link: status === 'approved'
+          ? account.role === 'mitra' ? '/dashboard/mitra' : '/dashboard/petani'
+          : '/masuk',
+      });
+    });
   },
 
   async changePassword(user: User, currentPassword: string, newPassword: string): Promise<void> {

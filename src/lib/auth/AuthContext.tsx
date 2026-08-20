@@ -50,9 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (input: RegisterInput): Promise<User> => {
     setIsLoading(true);
     try {
-      const registeredUser = await authService.register(input);
-      setUser(registeredUser);
-      return registeredUser;
+      return await authService.register(input);
     } finally {
       setIsLoading(false);
     }

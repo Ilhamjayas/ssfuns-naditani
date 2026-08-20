@@ -365,13 +365,13 @@ export default function EdukasiPage() {
           </div>
         </div>
 
-        {/* Featured Video */}
+        {/* Featured Learning */}
         <div className="mb-16">
           <h2 className="text-h3 font-bold text-slate-800 mb-6 flex items-center">
-            <Video className="w-6 h-6 mr-2 text-primary-600" /> Video Pilihan
+            <Video className="w-6 h-6 mr-2 text-primary-600" /> Panduan Pilihan
           </h2>
           <Card className="overflow-hidden border-none shadow-xl shadow-emerald-900/10">
-            <div className="group relative flex h-[340px] cursor-pointer items-center justify-center overflow-hidden bg-gradient-to-br from-emerald-950 via-emerald-800 to-lime-600 sm:h-[420px]">
+            <button type="button" aria-label="Buka panduan Teknologi Tanam Jajar Legowo" onClick={() => handleOpenModule(modulData[0])} className="group relative flex h-[340px] w-full cursor-pointer items-center justify-center overflow-hidden bg-gradient-to-br from-emerald-950 via-emerald-800 to-lime-600 text-left sm:h-[420px]">
               <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '28px 28px' }} />
               <div className="absolute -right-16 -top-20 h-72 w-72 rounded-full bg-lime-300/20 blur-3xl" />
               <div className="absolute -bottom-24 -left-16 h-72 w-72 rounded-full bg-emerald-300/20 blur-3xl" />
@@ -390,7 +390,7 @@ export default function EdukasiPage() {
                 <h3 className="text-lg font-bold sm:text-2xl">Teknologi Tanam Jajar Legowo</h3>
                 <p className="mt-1 hidden max-w-2xl text-slate-200 min-[420px]:line-clamp-2">Mengoptimalkan penyerapan sinar matahari dan sirkulasi udara untuk meningkatkan produktivitas hingga 15%.</p>
               </div>
-            </div>
+            </button>
           </Card>
         </div>
 

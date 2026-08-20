@@ -1,22 +1,32 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import DaiLocationMapDynamic from '@/components/maps/DaiLocationMapDynamic';
 import { DaiLocation } from '@/lib/types';
-import { CheckCircle2, MapPin, Search, Warehouse } from 'lucide-react';
+import { CheckCircle2, ExternalLink, Gauge, MapPin, Package, Search, Warehouse, X } from 'lucide-react';
 import { mockDaiLocations } from '@/lib/data/dai-locations';
 import { Input } from '@/components/ui/input';
 
 export default function DepoDaiPage() {
   const locations: DaiLocation[] = mockDaiLocations;
   const [search, setSearch] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState<DaiLocation | null>(null);
 
   const filteredLocations = locations.filter(location =>
     `${location.name} ${location.location}`.toLowerCase().includes(search.toLowerCase())
   );
+
+  useEffect(() => {
+    if (!selectedLocation) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelectedLocation(null);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [selectedLocation]);
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50 pt-16 sm:pt-20">
@@ -106,7 +116,7 @@ export default function DepoDaiPage() {
           )}
 
           <div className="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {filteredLocations.slice(0, 6).map(location => (
+            {filteredLocations.map(location => (
               <Card key={location.id} className="border-slate-200 shadow-none transition-colors hover:border-emerald-300">
                 <CardContent className="p-4">
                   <div className="flex items-start justify-between gap-3">
@@ -121,6 +131,7 @@ export default function DepoDaiPage() {
                     <span className="text-slate-500">Kapasitas <strong className="text-slate-700">{location.capacity} ton</strong></span>
                     <span className="font-semibold text-emerald-700">{location.services.length} layanan</span>
                   </div>
+                  <button type="button" onClick={() => setSelectedLocation(location)} className="mt-4 inline-flex h-10 w-full items-center justify-center rounded-xl bg-emerald-700 text-sm font-bold text-white transition-colors hover:bg-emerald-800">Lihat Detail DAI</button>
                 </CardContent>
               </Card>
             ))}
@@ -132,6 +143,60 @@ export default function DepoDaiPage() {
           )}
         </div>
       </div>
+
+      {selectedLocation && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+          <button type="button" aria-label="Tutup detail DAI" onClick={() => setSelectedLocation(null)} className="absolute inset-0 bg-slate-950/55 backdrop-blur-sm" />
+          <div role="dialog" aria-modal="true" aria-labelledby="dai-detail-title" className="relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-2xl overflow-y-auto rounded-3xl bg-white shadow-2xl">
+            <div className="bg-gradient-to-r from-emerald-900 to-emerald-700 p-5 text-white sm:p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.18em] text-emerald-200">{selectedLocation.id}</p>
+                  <h2 id="dai-detail-title" className="mt-1 text-2xl font-black">{selectedLocation.name}</h2>
+                  <p className="mt-2 flex items-start gap-2 text-sm text-emerald-100"><MapPin className="mt-0.5 h-4 w-4 shrink-0" /> {selectedLocation.location}</p>
+                </div>
+                <button type="button" aria-label="Tutup detail DAI" onClick={() => setSelectedLocation(null)} className="rounded-full bg-white/10 p-2 hover:bg-white/20"><X className="h-5 w-5" /></button>
+              </div>
+            </div>
+            <div className="space-y-6 p-5 sm:p-6">
+              <div className="grid gap-3 min-[420px]:grid-cols-2">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="flex items-center text-xs font-bold uppercase tracking-wider text-slate-400"><Gauge className="mr-2 h-4 w-4" /> Kapasitas</p>
+                  <p className="mt-2 text-2xl font-black text-slate-800">{selectedLocation.capacity} ton</p>
+                </div>
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <p className="flex items-center text-xs font-bold uppercase tracking-wider text-slate-400"><Package className="mr-2 h-4 w-4" /> Total stok tercatat</p>
+                  <p className="mt-2 text-2xl font-black text-slate-800">{Object.values(selectedLocation.stockLevels).reduce((total, value) => total + value, 0).toLocaleString('id-ID')} ton</p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-extrabold text-slate-800">Layanan Tersedia</h3>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {selectedLocation.services.map(service => <span key={service} className="inline-flex items-center rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-bold text-emerald-800"><CheckCircle2 className="mr-1.5 h-3.5 w-3.5" /> {service}</span>)}
+                </div>
+              </div>
+
+              <div>
+                <h3 className="font-extrabold text-slate-800">Stok Saat Ini</h3>
+                <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {Object.entries(selectedLocation.stockLevels).map(([label, value]) => (
+                    <div key={label} className="rounded-xl border border-slate-200 p-3 text-center">
+                      <p className="text-xs font-semibold capitalize text-slate-500">{label}</p>
+                      <p className="mt-1 font-black text-slate-800">{value.toLocaleString('id-ID')} t</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex flex-col-reverse gap-2 border-t border-slate-100 pt-5 min-[420px]:flex-row">
+                <button type="button" onClick={() => setSelectedLocation(null)} className="h-11 flex-1 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50">Tutup</button>
+                <a href={`https://www.google.com/maps/dir/?api=1&destination=${selectedLocation.coordinates[0]},${selectedLocation.coordinates[1]}`} target="_blank" rel="noreferrer" className="inline-flex h-11 flex-1 items-center justify-center rounded-xl bg-emerald-700 text-sm font-bold text-white hover:bg-emerald-800">Buka Petunjuk Arah <ExternalLink className="ml-2 h-4 w-4" /></a>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

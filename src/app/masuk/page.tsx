@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -30,6 +30,7 @@ const roleLabels: Record<UserRole, string> = {
   mitra: 'Mitra Industri',
   admin: 'Administrator',
 };
+const registrationRoles = ['petani', 'mitra'] as const;
 
 function getDashboardPath(role: UserRole) {
   if (role === 'petani') return '/dashboard/petani';
@@ -48,6 +49,7 @@ export default function MasukPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [registrationSuccess, setRegistrationSuccess] = useState<string | null>(null);
   const [registerForm, setRegisterForm] = useState({
     name: '',
     username: '',
@@ -60,8 +62,23 @@ export default function MasukPage() {
   const switchMode = (nextMode: 'login' | 'register') => {
     setMode(nextMode);
     setError(null);
+    if (nextMode === 'register') setRegistrationSuccess(null);
     setShowPassword(false);
   };
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('mode') !== 'register') return;
+      const requestedRole = params.get('role');
+      const safeRole = registrationRoles.includes(requestedRole as (typeof registrationRoles)[number])
+        ? requestedRole as (typeof registrationRoles)[number]
+        : 'petani';
+      setMode('register');
+      setRegisterForm(current => ({ ...current, role: safeRole }));
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   const handleLogin = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -91,14 +108,17 @@ export default function MasukPage() {
 
     setIsSubmitting(true);
     try {
-      const user = await register({
+      await register({
         name: registerForm.name,
         username: registerForm.username,
         email: registerForm.email,
         password: registerForm.password,
         role: registerForm.role,
       });
-      router.push(getDashboardPath(user.role));
+      setIdentifier(registerForm.username);
+      setPassword('');
+      setRegistrationSuccess('Pendaftaran berhasil dikirim. Akun dapat digunakan setelah diverifikasi administrator.');
+      setMode('login');
     } catch (registerError) {
       setError(registerError instanceof Error ? registerError.message : 'Pendaftaran belum dapat diproses');
     } finally {
@@ -188,6 +208,7 @@ export default function MasukPage() {
             </div>
 
             {error && <div role="alert" className="mb-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">{error}</div>}
+            {registrationSuccess && <div role="status" className="mb-5 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold leading-relaxed text-emerald-800"><CheckCircle2 className="mr-2 inline h-4 w-4" />{registrationSuccess}</div>}
 
             {mode === 'login' ? (
               <form onSubmit={handleLogin} className="space-y-5">
@@ -249,7 +270,7 @@ export default function MasukPage() {
                   </div>
                   <div>
                     <label htmlFor="register-role" className="mb-2 block text-sm font-bold text-slate-700">Daftar Sebagai</label>
-                    <div className="relative"><Building2 className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><select id="register-role" value={registerForm.role} onChange={event => setRegisterForm(current => ({ ...current, role: event.target.value as UserRole }))} className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">{(Object.keys(roleLabels) as UserRole[]).map(role => <option key={role} value={role}>{roleLabels[role]}</option>)}</select></div>
+                    <div className="relative"><Building2 className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" /><select id="register-role" value={registerForm.role} onChange={event => setRegisterForm(current => ({ ...current, role: event.target.value as UserRole }))} className="h-12 w-full appearance-none rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-100">{registrationRoles.map(role => <option key={role} value={role}>{roleLabels[role]}</option>)}</select></div>
                   </div>
                 </div>
 
@@ -265,9 +286,9 @@ export default function MasukPage() {
                 </div>
 
                 <button type="submit" disabled={isSubmitting} className="mt-2 flex h-13 w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 text-sm font-extrabold text-white shadow-lg shadow-emerald-700/20 transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60">
-                  {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Daftar dan Masuk <ArrowRight className="h-4 w-4" /></>}
+                  {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <>Kirim Pendaftaran <ArrowRight className="h-4 w-4" /></>}
                 </button>
-                <p className="text-center text-xs leading-relaxed text-slate-400">Akun baru disimpan secara lokal pada perangkat ini untuk kebutuhan demonstrasi.</p>
+                <p className="text-center text-xs leading-relaxed text-slate-400">Pendaftaran disimpan pada perangkat ini dan akan muncul pada antrean verifikasi Administrator.</p>
               </form>
             )}
 

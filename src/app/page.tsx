@@ -416,10 +416,10 @@ export default function Home() {
             <p className="text-xl text-primary-100 mb-12 max-w-2xl mx-auto font-medium">Bergabunglah dengan ekosistem NADI-TANI dan jadilah bagian dari transformasi agroindustri modern Indonesia.</p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <Link href="/masuk" className="w-full sm:w-auto px-10 py-4 bg-white text-primary-900 rounded-2xl font-extrabold text-lg shadow-xl hover:bg-slate-100 transition-transform hover:-translate-y-1">
+              <Link href="/masuk?mode=register&role=petani" className="w-full sm:w-auto px-10 py-4 bg-white text-primary-900 rounded-2xl font-extrabold text-lg shadow-xl hover:bg-slate-100 transition-transform hover:-translate-y-1">
                 Daftar sebagai Petani
               </Link>
-              <Link href="/masuk" className="w-full sm:w-auto px-10 py-4 border-2 border-primary-300 text-white hover:bg-white/10 backdrop-blur-sm rounded-2xl font-extrabold text-lg transition-transform hover:-translate-y-1">
+              <Link href="/masuk?mode=register&role=mitra" className="w-full sm:w-auto px-10 py-4 border-2 border-primary-300 text-white hover:bg-white/10 backdrop-blur-sm rounded-2xl font-extrabold text-lg transition-transform hover:-translate-y-1">
                 Daftar sebagai Mitra
               </Link>
               <Link href="/depo-dai" className="w-full sm:w-auto px-10 py-4 border-2 border-primary-300 text-white hover:bg-white/10 backdrop-blur-sm rounded-2xl font-extrabold text-lg transition-transform hover:-translate-y-1">

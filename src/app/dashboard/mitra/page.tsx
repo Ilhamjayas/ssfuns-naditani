@@ -19,7 +19,9 @@ export default function MitraDashboardPage() {
   const [products, setProducts] = useState<Product[]>([]);
 
   const [showOrderModal, setShowOrderModal] = useState(false);
-  const [orderForm, setOrderForm] = useState({ productId: '', qty: '', address: '', note: '' });
+  const [isSubmittingOrder, setIsSubmittingOrder] = useState(false);
+  const [selectedTrendIndex, setSelectedTrendIndex] = useState(5);
+  const [orderForm, setOrderForm] = useState({ productId: '', qty: '', recipientName: '', phone: '', address: '', paymentMethod: 'Transfer Bank', note: '' });
 
   const loadMarketplaceData = async () => {
     const [productData, orderData] = await Promise.all([
@@ -28,17 +30,18 @@ export default function MitraDashboardPage() {
     ]);
     setProducts(productData);
     setOrders(orderData);
-    setOrderForm(current => ({ ...current, productId: current.productId || productData[0]?.id || '' }));
+    setOrderForm(current => ({ ...current, productId: current.productId || productData[0]?.id || '', recipientName: current.recipientName || user?.name || '' }));
   };
 
   const handleOrderSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const product = products.find(item => item.id === orderForm.productId);
     const quantity = Number(orderForm.qty);
-    if (!product || !Number.isInteger(quantity) || quantity <= 0 || !orderForm.address.trim()) {
+    if (!product || !Number.isInteger(quantity) || quantity < product.minOrder || !orderForm.recipientName.trim() || !orderForm.phone.trim() || !orderForm.address.trim()) {
       toast.error('Mohon lengkapi form pesanan');
       return;
     }
+    setIsSubmittingOrder(true);
     try {
       const newOrder = await marketplaceService.createOrder({
         buyerId: user?.id || 'mitra-1',
@@ -46,13 +49,19 @@ export default function MitraDashboardPage() {
         items: [{ productId: product.id, quantity, price: product.price }],
         totalAmount: product.price * quantity,
         shippingAddress: orderForm.address,
+        recipientName: orderForm.recipientName,
+        recipientPhone: orderForm.phone,
+        paymentMethod: orderForm.paymentMethod,
+        notes: orderForm.note,
       });
       await loadMarketplaceData();
       setShowOrderModal(false);
-      setOrderForm({ productId: products[0]?.id || '', qty: '', address: '', note: '' });
+      setOrderForm({ productId: products[0]?.id || '', qty: '', recipientName: user?.name || '', phone: '', address: '', paymentMethod: 'Transfer Bank', note: '' });
       toast.success(`Pesanan ${newOrder.id} berhasil dibuat`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Pesanan gagal dibuat');
+    } finally {
+      setIsSubmittingOrder(false);
     }
   };
 
@@ -99,6 +108,10 @@ export default function MitraDashboardPage() {
   const activeOrders = orders.filter(order => ['pending', 'paid', 'processing'].includes(order.status)).length;
   const shippedOrders = orders.filter(order => order.status === 'shipped').length;
   const deliveredOrders = orders.filter(order => order.status === 'delivered').length;
+  const selectedProduct = products.find(product => product.id === orderForm.productId);
+  const orderQuantity = Number(orderForm.qty) || 0;
+  const orderSubtotal = selectedProduct ? selectedProduct.price * orderQuantity : 0;
+  const estimatedShipping = orderSubtotal === 0 ? 0 : orderSubtotal >= 500000 ? 0 : 25000;
 
   if (loading) {
     return (
@@ -119,6 +132,7 @@ export default function MitraDashboardPage() {
           <p className="text-slate-500">Kelola pesanan dan pembelian hasil pascapanen NADI-TANI</p>
         </div>
         <button
+          type="button"
           onClick={() => setShowOrderModal(true)}
           className="w-full rounded-lg bg-primary-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-primary-700 sm:w-auto"
         >
@@ -164,14 +178,15 @@ export default function MitraDashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
-                <table className="min-w-[680px] w-full text-left text-sm text-slate-500">
+                <table className="min-w-[780px] w-full text-left text-sm text-slate-500">
                   <thead className="text-xs text-slate-700 uppercase bg-slate-50">
                     <tr>
                       <th className="px-4 py-3 rounded-tl-lg">ID Pesanan</th>
                       <th className="px-4 py-3">Produk</th>
                       <th className="px-4 py-3">Jumlah</th>
                       <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3 rounded-tr-lg text-right">Total</th>
+                      <th className="px-4 py-3 text-right">Total</th>
+                      <th className="px-4 py-3 rounded-tr-lg text-center">Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -188,9 +203,11 @@ export default function MitraDashboardPage() {
                             {order.status === 'delivered' ? 'Selesai' : order.status === 'shipped' ? 'Dikirim' : 'Diproses'}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-right font-medium">
+                        <td className="px-4 py-3 text-right font-medium text-slate-800">{formatRupiah(order.totalAmount)}</td>
+                        <td className="px-4 py-3 text-center">
                           {order.status === 'shipped' ? (
                             <button
+                              type="button"
                               onClick={() => {
                                 void marketplaceService.updateOrderStatus(order.id, 'delivered', user?.id).then(() => {
                                   setOrders(current => current.map(item => item.id === order.id ? { ...item, status: 'delivered' } : item));
@@ -202,7 +219,7 @@ export default function MitraDashboardPage() {
                               Terima Pesanan
                             </button>
                           ) : (
-                            formatRupiah(order.totalAmount)
+                            <span className="text-xs font-semibold text-slate-400">{order.status === 'delivered' ? 'Tuntas' : 'Menunggu'}</span>
                           )}
                         </td>
                       </tr>
@@ -309,13 +326,13 @@ export default function MitraDashboardPage() {
             <CardContent>
               <div className="h-64 flex items-end justify-between gap-2 pt-4">
                 {trendData.map((data, i) => (
-                  <div key={i} className="flex flex-col items-center gap-2 flex-1 group">
+                  <button type="button" aria-label={`${data.month}: ${data.value} ton`} onClick={() => setSelectedTrendIndex(i)} key={i} className="group flex flex-1 flex-col items-center gap-2 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500">
                     <div className="relative w-full flex justify-center h-48 items-end">
                       <div
-                        className="w-full max-w-[40px] bg-primary-100 group-hover:bg-primary-200 transition-colors rounded-t-md relative"
+                        className={`relative w-full max-w-[40px] rounded-t-md transition-colors ${selectedTrendIndex === i ? 'bg-primary-200 ring-2 ring-primary-300' : 'bg-primary-100 group-hover:bg-primary-200'}`}
                         style={{ height: `${(data.value / 150) * 100}%` }}
                       >
-                        <div className="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 bg-slate-800 text-white text-xs px-2 py-1 rounded pointer-events-none transition-opacity">
+                        <div className={`pointer-events-none absolute -top-7 left-1/2 -translate-x-1/2 rounded bg-slate-800 px-2 py-1 text-xs text-white transition-opacity ${selectedTrendIndex === i ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                           {data.value}T
                         </div>
                         <div
@@ -325,7 +342,7 @@ export default function MitraDashboardPage() {
                       </div>
                     </div>
                     <span className="text-xs text-slate-500 font-medium">{data.month}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
             </CardContent>
@@ -381,6 +398,17 @@ export default function MitraDashboardPage() {
                     onChange={e => setOrderForm({...orderForm, qty: e.target.value})}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500"
                   />
+                  {selectedProduct && <p className="text-xs text-slate-500">Minimum {selectedProduct.minOrder} {selectedProduct.unit || 'item'} • stok {selectedProduct.stock.toLocaleString('id-ID')}</p>}
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label htmlFor="mitra-recipient" className="text-sm font-medium text-slate-700">Nama Penerima</label>
+                    <input id="mitra-recipient" required value={orderForm.recipientName} onChange={e => setOrderForm({ ...orderForm, recipientName: e.target.value })} placeholder="Nama penerima" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  </div>
+                  <div className="space-y-2">
+                    <label htmlFor="mitra-phone" className="text-sm font-medium text-slate-700">Nomor Telepon</label>
+                    <input id="mitra-phone" type="tel" required value={orderForm.phone} onChange={e => setOrderForm({ ...orderForm, phone: e.target.value })} placeholder="08xxxxxxxxxx" className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500" />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="mitra-address" className="text-sm font-medium text-slate-700">Alamat Pengiriman</label>
@@ -394,6 +422,15 @@ export default function MitraDashboardPage() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <label htmlFor="mitra-payment" className="text-sm font-medium text-slate-700">Metode Pembayaran</label>
+                  <select id="mitra-payment" value={orderForm.paymentMethod} onChange={e => setOrderForm({ ...orderForm, paymentMethod: e.target.value })} className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500">
+                    <option>Transfer Bank</option>
+                    <option>Virtual Account</option>
+                    <option>Termin 30 Hari</option>
+                    <option>Bayar di Tempat</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
                   <label htmlFor="mitra-note" className="text-sm font-medium text-slate-700">Catatan (Opsional)</label>
                   <textarea
                     id="mitra-note"
@@ -402,6 +439,11 @@ export default function MitraDashboardPage() {
                     onChange={e => setOrderForm({...orderForm, note: e.target.value})}
                     className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 h-16 resize-none"
                   />
+                </div>
+                <div className="rounded-xl border border-primary-100 bg-primary-50 p-3 text-sm">
+                  <div className="flex justify-between text-slate-600"><span>Subtotal</span><strong>{formatRupiah(orderSubtotal)}</strong></div>
+                  <div className="mt-2 flex justify-between text-slate-600"><span>Estimasi ongkir</span><strong>{estimatedShipping === 0 ? 'Gratis' : formatRupiah(estimatedShipping)}</strong></div>
+                  <div className="mt-3 flex justify-between border-t border-primary-100 pt-3 font-extrabold text-primary-800"><span>Total</span><span>{formatRupiah(orderSubtotal + estimatedShipping)}</span></div>
                 </div>
                 <div className="pt-4 flex gap-3">
                   <button
@@ -413,9 +455,10 @@ export default function MitraDashboardPage() {
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors"
+                    disabled={isSubmittingOrder}
+                    className="flex-1 px-4 py-2 bg-primary-600 text-white rounded-lg text-sm font-medium hover:bg-primary-700 transition-colors disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Konfirmasi Pesanan
+                    {isSubmittingOrder ? 'Menyimpan...' : 'Konfirmasi Pesanan'}
                   </button>
                 </div>
               </form>

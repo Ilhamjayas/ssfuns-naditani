@@ -55,7 +55,7 @@ export default function PetaniDashboardPage() {
     fetchData();
   }, [user]);
 
-  const farmerName = dashboardData?.profile?.nama || user?.name || 'Budi Santoso';
+  const farmerName = user?.name || dashboardData?.profile?.nama || 'Petani NADI-TANI';
 
   if (loading) {
     return (
@@ -81,7 +81,7 @@ export default function PetaniDashboardPage() {
         </div>
         <span className="inline-flex w-fit items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700">
           <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-          Akun demo aktif
+          Akun aktif dan terverifikasi
         </span>
       </div>
 

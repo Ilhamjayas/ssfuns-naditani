@@ -166,6 +166,12 @@ export interface Product {
   certification?: string[];
   images: string[];
   daiId: string;
+  unit?: string;
+  rating?: number;
+  sold?: number;
+  location?: string;
+  leadTime?: string;
+  highlights?: string[];
 }
 
 export interface Byproduct {
@@ -200,9 +206,15 @@ export interface BuyerOrder {
     price: number;
   }[];
   totalAmount: number;
+  subtotal?: number;
+  shippingCost?: number;
   status: OrderStatus;
   orderDate: string;
   shippingAddress: string;
+  recipientName?: string;
+  recipientPhone?: string;
+  paymentMethod?: string;
+  notes?: string;
 }
 
 export interface WalletAccount {

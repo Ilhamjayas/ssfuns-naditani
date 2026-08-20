@@ -23,9 +23,11 @@ export const marketplaceService = {
     await delay(500);
     if (buyerId) {
       const acceptedIds = buyerId === 'user-mitra-1' ? ['user-mitra-1', 'mitra-1'] : [buyerId];
-      return getDemoState().orders.filter(o => acceptedIds.includes(o.buyerId));
+      return getDemoState().orders
+        .filter(o => acceptedIds.includes(o.buyerId))
+        .sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
     }
-    return [...getDemoState().orders];
+    return [...getDemoState().orders].sort((a, b) => new Date(b.orderDate).getTime() - new Date(a.orderDate).getTime());
   },
 
   async createOrder(data: Partial<BuyerOrder>): Promise<BuyerOrder> {
@@ -43,16 +45,24 @@ export const marketplaceService = {
       if (item.quantity > product.stock) throw new Error(`Stok ${product.name} hanya tersisa ${product.stock}`);
       return { productId: product.id, quantity: item.quantity, price: product.price };
     });
-    const totalAmount = items.reduce((total, item) => total + item.price * item.quantity, 0);
+    const subtotal = items.reduce((total, item) => total + item.price * item.quantity, 0);
+    const shippingCost = subtotal >= 500000 ? 0 : 25000;
+    const totalAmount = subtotal + shippingCost;
     const order: BuyerOrder = {
       id: `ORD-${Date.now()}`,
       buyerId: data.buyerId || 'mitra-1',
       daiId: products.find(product => product.id === items[0].productId)?.daiId || data.daiId || 'DAI-NGW-01',
       items,
       totalAmount,
+      subtotal,
+      shippingCost,
       status: 'pending',
       orderDate: new Date().toISOString(),
       shippingAddress: data.shippingAddress.trim(),
+      recipientName: data.recipientName?.trim(),
+      recipientPhone: data.recipientPhone?.trim(),
+      paymentMethod: data.paymentMethod || 'COD',
+      notes: data.notes?.trim(),
     };
     updateDemoState(state => {
       state.orders.unshift(order);
@@ -68,6 +78,17 @@ export const marketplaceService = {
         entityId: order.id,
         details: `Pesanan senilai ${order.totalAmount} dibuat`,
         timestamp: new Date().toISOString(),
+      });
+      state.notifications.unshift({
+        id: `NOTIF-ORDER-${Date.now()}`,
+        userId: order.buyerId,
+        title: 'Pesanan Marketplace Dibuat',
+        message: `Pesanan ${order.id} senilai ${order.totalAmount.toLocaleString('id-ID')} berhasil dibuat dan menunggu diproses.`,
+        type: 'success',
+        category: 'transaksi',
+        isRead: false,
+        createdAt: new Date().toISOString(),
+        link: '/marketplace',
       });
     });
     return order;
@@ -94,5 +115,44 @@ export const marketplaceService = {
     });
     if (!updated) throw new Error('Pesanan tidak ditemukan');
     return updated;
+  },
+
+  async cancelOrder(id: string, buyerId: string): Promise<BuyerOrder> {
+    await delay(300);
+    let cancelled: BuyerOrder | undefined;
+    const acceptedIds = buyerId === 'user-mitra-1' ? ['user-mitra-1', 'mitra-1'] : [buyerId];
+    updateDemoState(state => {
+      const order = state.orders.find(item => item.id === id && acceptedIds.includes(item.buyerId));
+      if (!order) return;
+      if (order.status !== 'pending') throw new Error('Pesanan yang sudah diproses tidak dapat dibatalkan');
+      order.status = 'cancelled';
+      order.items.forEach(item => {
+        const product = state.products.find(productItem => productItem.id === item.productId);
+        if (product) product.stock += item.quantity;
+      });
+      cancelled = { ...order, items: order.items.map(item => ({ ...item })) };
+      state.notifications.unshift({
+        id: `NOTIF-CANCEL-${Date.now()}`,
+        userId: order.buyerId,
+        title: 'Pesanan Dibatalkan',
+        message: `Pesanan ${order.id} telah dibatalkan dan stok produk dikembalikan.`,
+        type: 'info',
+        category: 'transaksi',
+        isRead: false,
+        createdAt: new Date().toISOString(),
+        link: '/marketplace',
+      });
+      state.auditLogs.unshift({
+        id: `AUD-${Date.now()}`,
+        userId: buyerId,
+        action: 'CANCEL_ORDER',
+        entityType: 'BuyerOrder',
+        entityId: order.id,
+        details: 'Pesanan marketplace dibatalkan pembeli',
+        timestamp: new Date().toISOString(),
+      });
+    });
+    if (!cancelled) throw new Error('Pesanan tidak ditemukan');
+    return cancelled;
   }
 };

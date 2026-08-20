@@ -4,6 +4,7 @@ import {
   AuditLog,
   BuyerOrder,
   DepositTransaction,
+  DryingProcess,
   Notification,
   PickupSchedule,
   Product,
@@ -17,8 +18,10 @@ import { mockWarehouseStock } from '@/lib/data/warehouse';
 import { mockOrders } from '@/lib/data/orders';
 import { mockProducts } from '@/lib/data/products';
 import { mockNotifications } from '@/lib/data/notifications';
+import { mockDryingProcesses } from '@/lib/data/batches';
 
 export interface DemoUserProfile {
+  avatarUrl?: string;
   personal: {
     nama: string;
     email: string;
@@ -47,6 +50,7 @@ export interface DemoState {
   warehouseStock: WarehouseStock[];
   orders: BuyerOrder[];
   products: Product[];
+  dryingProcesses: DryingProcess[];
   notifications: Notification[];
   profiles: Record<string, DemoUserProfile>;
   learningProgress: Record<string, number[]>;
@@ -80,6 +84,7 @@ const createInitialState = (): DemoState => ({
   warehouseStock: clone(mockWarehouseStock),
   orders: clone(mockOrders),
   products: clone(mockProducts),
+  dryingProcesses: clone(mockDryingProcesses),
   notifications: clone(mockNotifications),
   profiles: {},
   learningProgress: {},
@@ -104,6 +109,29 @@ export function getDemoState(): DemoState {
       return clone(memoryState);
     }
     parsed.learningProgress ||= {};
+    parsed.dryingProcesses ||= clone(mockDryingProcesses);
+    parsed.products = mockProducts.map(canonicalProduct => {
+      const savedProduct = parsed.products?.find(product => product.id === canonicalProduct.id);
+      return savedProduct
+        ? { ...canonicalProduct, stock: savedProduct.stock }
+        : clone(canonicalProduct);
+    });
+    const generatedNotifications = (parsed.notifications || [])
+      .filter(notification => !mockNotifications.some(item => item.id === notification.id))
+      .map(notification => notification.link === '/dashboard'
+        ? {
+            ...notification,
+            link: notification.userId.includes('mitra') ? '/dashboard/mitra' : '/dashboard/petani',
+          }
+        : notification);
+    parsed.notifications = [
+      ...mockNotifications.map(canonicalNotification => {
+        const savedNotification = parsed.notifications?.find(notification => notification.id === canonicalNotification.id);
+        return savedNotification ? { ...canonicalNotification, isRead: savedNotification.isRead } : clone(canonicalNotification);
+      }),
+      ...generatedNotifications,
+    ];
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(parsed));
     memoryState = parsed;
     return clone(parsed);
   } catch {
