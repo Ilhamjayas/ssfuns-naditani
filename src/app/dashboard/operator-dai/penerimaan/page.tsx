@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { transactionService } from '@/lib/services/transaction.service';
 import { DepositTransaction, PickupSchedule } from '@/lib/types';
-import { CalendarDays, CheckCircle2, MapPin, Truck } from 'lucide-react';
+import { CalendarDays, CheckCircle2, FileCheck2, MapPin, Truck, X } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { motion } from 'framer-motion';
 import { toast } from 'sonner';
@@ -17,6 +17,7 @@ export default function PenerimaanPage() {
   const [transactions, setTransactions] = useState<DepositTransaction[]>([]);
   const [schedules, setSchedules] = useState<PickupSchedule[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedTransaction, setSelectedTransaction] = useState<DepositTransaction | null>(null);
 
   useEffect(() => {
     async function loadData() {
@@ -36,6 +37,15 @@ export default function PenerimaanPage() {
 
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (!selectedTransaction) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelectedTransaction(null);
+    };
+    window.addEventListener('keydown', closeOnEscape);
+    return () => window.removeEventListener('keydown', closeOnEscape);
+  }, [selectedTransaction]);
 
   if (isLoading) {
     return (
@@ -232,14 +242,26 @@ export default function PenerimaanPage() {
                         <p className="break-words text-xl font-bold text-emas-padi sm:text-2xl">{formatCurrency(trx.nilai_transaksi)}</p>
                       </div>
 
-                      <div className="flex gap-2 w-full md:w-auto">
-                        <Button onClick={() => void handleTolak(trx.id)} disabled={trx.status === 'selesai' || trx.status === 'dibatalkan'} variant="outline" className="flex-1 md:flex-none border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700">
-                          Tolak
+                      {trx.status === 'selesai' || trx.status === 'dibatalkan' ? (
+                        <Button
+                          type="button"
+                          onClick={() => setSelectedTransaction(trx)}
+                          variant={trx.status === 'dibatalkan' ? 'outline' : 'primary'}
+                          className={`w-full md:w-auto ${trx.status === 'dibatalkan' ? 'border-red-200 text-red-700 hover:bg-red-50' : 'bg-emerald-700 text-white hover:bg-emerald-800'}`}
+                        >
+                          <FileCheck2 className="mr-2 h-4 w-4" />
+                          {trx.status === 'selesai' ? 'Lihat Bukti Verifikasi' : 'Lihat Rincian Penolakan'}
                         </Button>
-                        <Button onClick={() => void handleVerifikasi(trx.id)} disabled={trx.status === 'selesai' || trx.status === 'dibatalkan'} className="flex-1 md:flex-none bg-hijau-pertanian hover:bg-hijau-tua">
-                          {trx.status === 'selesai' ? 'Terverifikasi' : trx.status === 'dibatalkan' ? 'Ditolak' : 'Verifikasi'}
-                        </Button>
-                      </div>
+                      ) : (
+                        <div className="flex gap-2 w-full md:w-auto">
+                          <Button type="button" onClick={() => void handleTolak(trx.id)} variant="outline" className="flex-1 md:flex-none border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700">
+                            Tolak
+                          </Button>
+                          <Button type="button" onClick={() => void handleVerifikasi(trx.id)} className="flex-1 md:flex-none bg-hijau-pertanian hover:bg-hijau-tua">
+                            Verifikasi
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </CardContent>
@@ -248,6 +270,67 @@ export default function PenerimaanPage() {
           ))
         )}
       </div>
+
+      {selectedTransaction && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
+          <button type="button" aria-label="Tutup rincian transaksi" onClick={() => setSelectedTransaction(null)} className="absolute inset-0 bg-slate-950/55 backdrop-blur-sm" />
+          <div role="dialog" aria-modal="true" aria-labelledby="transaction-detail-title" className="relative z-10 max-h-[calc(100dvh-2rem)] w-full max-w-xl overflow-y-auto rounded-3xl bg-white shadow-2xl">
+            <div className={`rounded-t-3xl p-5 text-white sm:p-6 ${selectedTransaction.status === 'selesai' ? 'bg-gradient-to-r from-emerald-900 to-emerald-700' : 'bg-gradient-to-r from-red-800 to-rose-700'}`}>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-white/75">{selectedTransaction.status === 'selesai' ? 'Bukti Verifikasi Digital' : 'Rincian Penolakan'}</p>
+                  <h2 id="transaction-detail-title" className="mt-1 break-all text-xl font-black sm:text-2xl">{selectedTransaction.id}</h2>
+                  <p className="mt-2 text-sm text-white/80">{new Date(selectedTransaction.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
+                <button type="button" aria-label="Tutup rincian transaksi" onClick={() => setSelectedTransaction(null)} className="shrink-0 rounded-full bg-white/10 p-2 hover:bg-white/20"><X className="h-5 w-5" /></button>
+              </div>
+            </div>
+
+            <div className="space-y-5 p-5 sm:p-6">
+              <div className={`flex items-center gap-3 rounded-2xl border p-4 ${selectedTransaction.status === 'selesai' ? 'border-emerald-200 bg-emerald-50 text-emerald-800' : 'border-red-200 bg-red-50 text-red-800'}`}>
+                <CheckCircle2 className="h-6 w-6 shrink-0" />
+                <div>
+                  <p className="text-sm font-extrabold">{selectedTransaction.status === 'selesai' ? 'Transaksi telah terverifikasi' : 'Transaksi tidak diterima'}</p>
+                  <p className="mt-0.5 text-xs opacity-80">Status tersimpan dan terhubung dengan riwayat akun petani.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {[
+                  { label: 'ID Petani', value: selectedTransaction.farmerId },
+                  { label: 'DAI', value: selectedTransaction.daiId },
+                  { label: 'Grade', value: selectedTransaction.grade },
+                  { label: 'Berat Kotor', value: `${selectedTransaction.berat_kotor.toLocaleString('id-ID')} kg` },
+                  { label: 'Berat Bersih', value: `${selectedTransaction.berat_bersih.toLocaleString('id-ID')} kg` },
+                  { label: 'Kadar Air', value: `${selectedTransaction.kadar_air}%` },
+                ].map(item => (
+                  <div key={item.label} className="rounded-xl border border-slate-200 bg-slate-50 p-3">
+                    <p className="text-[11px] font-bold uppercase tracking-wide text-slate-400">{item.label}</p>
+                    <p className="mt-1 break-words text-sm font-extrabold text-slate-800">{item.value}</p>
+                  </div>
+                ))}
+              </div>
+
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
+                <div className="flex items-center justify-between gap-4">
+                  <span className="text-sm font-semibold text-amber-900">Nilai Transaksi</span>
+                  <strong className="text-lg text-amber-900 sm:text-xl">{formatCurrency(selectedTransaction.nilai_transaksi)}</strong>
+                </div>
+                <p className="mt-2 text-xs text-amber-800">Harga acuan {formatCurrency(selectedTransaction.harga_per_kg)} per kg.</p>
+              </div>
+
+              {selectedTransaction.notes && (
+                <div className="rounded-2xl border border-slate-200 p-4">
+                  <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Catatan Operator</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{selectedTransaction.notes}</p>
+                </div>
+              )}
+
+              <Button type="button" onClick={() => setSelectedTransaction(null)} className="h-11 w-full bg-slate-800 text-white hover:bg-slate-900">Tutup Rincian</Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

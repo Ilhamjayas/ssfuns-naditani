@@ -29,12 +29,12 @@ export function Sidebar() {
     .toUpperCase() || 'NT';
 
   return (
-    <aside className="hidden h-full min-h-0 w-64 shrink-0 border-r border-slate-200/70 bg-white lg:block xl:w-72">
-      <div className="flex h-full min-h-0 flex-col gap-2 pt-7">
-        <div className="mb-3 px-6">
+    <aside className="hidden h-full min-h-0 w-64 shrink-0 overflow-hidden border-r border-slate-200/70 bg-white lg:block xl:w-72">
+      <div className="flex h-full min-h-0 flex-col">
+        <div className="shrink-0 px-6 pb-3 pt-7 [@media(max-height:720px)]:pt-4">
           <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Menu Utama</h2>
         </div>
-        <div className="flex-1 overflow-auto py-2">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-3">
           <nav className="grid items-start px-4 text-sm font-medium gap-1">
             {navItems.map((item, index) => {
               const Icon = item.icon;
@@ -76,21 +76,27 @@ export function Sidebar() {
             })}
           </nav>
         </div>
-        <div className="p-4 pt-2">
-          <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-3.5 shadow-sm">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-sm font-extrabold text-white shadow-sm">
-                {initials}
+        <div className="mt-auto shrink-0 border-t border-slate-100 bg-white p-3 [@media(max-height:720px)]:p-2.5 xl:p-4">
+          <Link
+            href="/dashboard/profil"
+            aria-label={`Buka profil akun ${user?.name || 'Pengguna'}`}
+            className="group block rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2"
+          >
+            <div className="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-3.5 shadow-sm transition duration-200 group-hover:-translate-y-0.5 group-hover:border-emerald-200 group-hover:shadow-md [@media(max-height:720px)]:p-2.5">
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-sm font-extrabold text-white shadow-sm">
+                  {initials}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-slate-800">{user?.name || 'Pengguna'}</p>
+                  <p className="mt-0.5 truncate text-xs font-medium text-emerald-700">{roleLabel}</p>
+                </div>
               </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-slate-800">{user?.name || 'Pengguna'}</p>
-                <p className="mt-0.5 truncate text-xs font-medium text-emerald-700">{roleLabel}</p>
+              <div className="mt-3 flex items-center gap-2 border-t border-emerald-100 pt-3 text-[11px] font-semibold text-slate-500 [@media(max-height:720px)]:hidden">
+                <span className="h-2 w-2 rounded-full bg-emerald-500" /> Akun aktif dan terhubung
               </div>
             </div>
-            <div className="mt-3 flex items-center gap-2 border-t border-emerald-100 pt-3 text-[11px] font-semibold text-slate-500">
-              <span className="h-2 w-2 rounded-full bg-emerald-500" /> Akun aktif dan terhubung
-            </div>
-          </div>
+          </Link>
         </div>
       </div>
     </aside>
